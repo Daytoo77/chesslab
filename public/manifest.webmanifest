@@ -1,0 +1,12 @@
+{
+  "name": "ChessLab — Training Suite",
+  "short_name": "ChessLab",
+  "description": "Personal chess training: tactics, openings, analysis, endgames.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0a0f1b",
+  "theme_color": "#0d1322",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

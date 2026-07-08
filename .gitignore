@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.env
+.env.local
+.cache
+.vite
+.wasm-pack
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.suo
+*.code-workspace

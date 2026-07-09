@@ -1,4 +1,11 @@
-# ChessLab — Training Suite (v12)
+# ChessLab — Training Suite (v13)
+
+## v13 — premium visual identity (pillar 1 of the next-gen overhaul)
+- **Neutral-dark design language** (Linear-inspired): near-black `#0a0b0e` base, calm opaque surfaces, hairline borders, refined shadows, tighter radii, more negative space, `:focus-visible` rings.
+- **Motion** (`motion/react`): buttery page transitions between sections (`AnimatePresence mode="wait"`), scale/fade settings popover, staggered bot-card + panel entrances (CSS `rise-in` keyed off `--i`), `prefers-reduced-motion` respected.
+- **Grouped sidebar** — Play / Train / Analyze sections with uppercase group labels, quieter active state (neutral fill + gold inset bar + gold icon).
+- **Board glow**: last move gets a soft gold inner bloom (brighter ring on the destination), king-in-check pulses red (`check-pulse`), premoves glow blue, selected square blooms.
+- **Move list**: auto-scrolls to keep the current move visible; the current-move pill glows gold; classification colors/superscripts as before.
 
 ## v12 — weakness profiling (concrete coaching, not just numbers)
 - **Mistake-motif tagging**: every flagged move now gets concrete *why-it-was-bad* tags from cheap, engine-free heuristics — **Hung piece · Greedy pawn · Missed material · Missed fork · Missed mate · Allowed fork · Allowed mate · Back rank · Time trouble**. Shown as chips on each mistake card (hover for one-line coaching). Pure board geometry over the FENs already computed — no extra engine calls. (`src/motifs.js`)

@@ -476,11 +476,11 @@ export default function Play() {
         )}
 
         <div className="bot-grid">
-          {BOTS.map((b) => {
+          {BOTS.map((b, i) => {
             const r = vsRecord[b.id] || { w: 0, d: 0, l: 0 };
             const played = r.w + r.d + r.l;
             return (
-              <button key={b.id} className={`bot-card ${botId === b.id ? 'active' : ''}`} onClick={() => setBotId(b.id)}>
+              <button key={b.id} style={{ '--i': i }} className={`bot-card ${botId === b.id ? 'active' : ''}`} onClick={() => setBotId(b.id)}>
                 <div className="bot-emoji">{b.emoji}</div>
                 <div className="bot-name">{b.name}</div>
                 <div className="bot-elo">{b.elo === 3200 ? 'MAX' : b.elo}</div>

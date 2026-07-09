@@ -26,9 +26,13 @@ const unicodePieces = (() => {
 
 const DOT = { background: 'radial-gradient(circle, rgba(217,169,67,0.55) 22%, transparent 24%)' };
 const RING = { background: 'radial-gradient(circle, transparent 56%, rgba(217,169,67,0.6) 60%, rgba(217,169,67,0.6) 72%, transparent 76%)' };
-const CHECK = { background: 'radial-gradient(circle, rgba(224,80,80,0.85) 18%, rgba(224,80,80,0.45) 48%, transparent 72%)' };
+// pulsing red glow while the king is in check (keyframes live in index.css)
+const CHECK = {
+  background: 'radial-gradient(circle, rgba(224,80,80,0.85) 18%, rgba(224,80,80,0.45) 48%, transparent 72%)',
+  animation: 'check-pulse 1.1s ease-in-out infinite',
+};
 const MARK = { boxShadow: 'inset 0 0 0 4px rgba(224,108,108,0.85)' };
-const PREMOVE = { backgroundColor: 'rgba(125, 163, 224, 0.45)' };
+const PREMOVE = { backgroundColor: 'rgba(125, 163, 224, 0.38)', boxShadow: 'inset 0 0 16px rgba(125, 163, 224, 0.45)' };
 
 function kingInCheckSquare(fen) {
   try {
@@ -66,15 +70,22 @@ export default function Board({ fen, onDrop, orientation = 'white', lastMove, ar
 
   const squareStyles = {};
   if (lastMove) {
-    squareStyles[lastMove.from] = { backgroundColor: 'rgba(217,169,67,0.40)' };
-    squareStyles[lastMove.to] = { backgroundColor: 'rgba(217,169,67,0.52)' };
+    // elegant glow — soft inner bloom on the origin, brighter ring + bloom on the destination
+    squareStyles[lastMove.from] = {
+      backgroundColor: 'rgba(217,169,67,0.32)',
+      boxShadow: 'inset 0 0 14px rgba(240,208,112,0.28)',
+    };
+    squareStyles[lastMove.to] = {
+      backgroundColor: 'rgba(217,169,67,0.45)',
+      boxShadow: 'inset 0 0 0 2px rgba(240,208,112,0.55), inset 0 0 20px rgba(240,208,112,0.35)',
+    };
   }
   if (premove) {
     squareStyles[premove.from] = { ...(squareStyles[premove.from] || {}), ...PREMOVE };
     squareStyles[premove.to] = { ...(squareStyles[premove.to] || {}), ...PREMOVE };
   }
   if (checkSq) squareStyles[checkSq] = { ...(squareStyles[checkSq] || {}), ...CHECK };
-  if (hintFrom) squareStyles[hintFrom] = { ...(squareStyles[hintFrom] || {}), boxShadow: 'inset 0 0 0 3px rgba(217,169,67,0.85)' };
+  if (hintFrom) squareStyles[hintFrom] = { ...(squareStyles[hintFrom] || {}), boxShadow: 'inset 0 0 0 3px rgba(217,169,67,0.85), inset 0 0 18px rgba(240,208,112,0.35)' };
   if (showLegal) for (const m of targets) squareStyles[m.to] = { ...(squareStyles[m.to] || {}), ...(m.captured ? RING : DOT) };
   for (const sq of marks) squareStyles[sq] = { ...(squareStyles[sq] || {}), ...MARK };
 

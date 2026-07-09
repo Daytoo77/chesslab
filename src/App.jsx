@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { getPlayEngine } from './stockfish.js';
 import Play from './sections/Play.jsx';
 import Tactics from './sections/Tactics.jsx';
@@ -12,14 +13,22 @@ import { useStats } from './store.js';
 import { useSettings, useUi, BOARD_THEMES } from './settings.js';
 
 const SECTIONS = [
-  { id: 'play', label: 'Play vs Bots', icon: '♞', comp: Play },
-  { id: 'tactics', label: 'Tactics Trainer', icon: '⚔', comp: Tactics },
-  { id: 'openings', label: 'Opening Explorer', icon: '♜', comp: Openings },
-  { id: 'analyzer', label: 'Game Analyzer', icon: '⚡', comp: Analyzer },
-  { id: 'endgames', label: 'Endgame Drills', icon: '♚', comp: Endgames },
-  { id: 'train', label: 'Training Plan', icon: '◎', comp: Train },
-  { id: 'dashboard', label: 'Progress', icon: '◈', comp: Dashboard },
+  { id: 'play', label: 'Play vs Bots', icon: '♞', comp: Play, group: 'Play' },
+  { id: 'tactics', label: 'Tactics Trainer', icon: '⚔', comp: Tactics, group: 'Train' },
+  { id: 'openings', label: 'Opening Explorer', icon: '♜', comp: Openings, group: 'Train' },
+  { id: 'endgames', label: 'Endgame Drills', icon: '♚', comp: Endgames, group: 'Train' },
+  { id: 'train', label: 'Training Plan', icon: '◎', comp: Train, group: 'Train' },
+  { id: 'analyzer', label: 'Game Analyzer', icon: '⚡', comp: Analyzer, group: 'Analyze' },
+  { id: 'dashboard', label: 'Progress', icon: '◈', comp: Dashboard, group: 'Analyze' },
 ];
+const NAV_GROUPS = ['Play', 'Train', 'Analyze'];
+
+const PAGE_ANIM = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+  transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
+};
 
 function Settings({ onClose }) {
   const settings = useSettings();
@@ -32,7 +41,14 @@ function Settings({ onClose }) {
     </label>
   );
   return (
-    <div className="settings-pop" onClick={(e) => e.stopPropagation()}>
+    <motion.div
+      className="settings-pop"
+      onClick={(e) => e.stopPropagation()}
+      initial={{ opacity: 0, scale: 0.94, y: 6 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.96, y: 4 }}
+      transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+    >
       <h3>Settings</h3>
       <div className="settings-row" style={{ display: 'block' }}>
         <span>Board theme</span>
@@ -82,7 +98,7 @@ function Settings({ onClose }) {
         <input type="checkbox" checked={blindfold} onChange={toggleBlindfold} />
       </label>
       <button className="btn" style={{ width: '100%', marginTop: 8 }} onClick={onClose}>Done</button>
-    </div>
+    </motion.div>
   );
 }
 
@@ -109,11 +125,16 @@ export default function App() {
           </span>
         </div>
         <nav className="nav">
-          {SECTIONS.map((s) => (
-            <button key={s.id} className={page === s.id ? 'active' : ''} onClick={() => setPage(s.id)}>
-              <span className="icon">{s.icon}</span>
-              {s.label}
-            </button>
+          {NAV_GROUPS.map((g) => (
+            <React.Fragment key={g}>
+              <div className="nav-group">{g}</div>
+              {SECTIONS.filter((s) => s.group === g).map((s) => (
+                <button key={s.id} className={page === s.id ? 'active' : ''} onClick={() => setPage(s.id)}>
+                  <span className="icon">{s.icon}</span>
+                  {s.label}
+                </button>
+              ))}
+            </React.Fragment>
           ))}
         </nav>
         <div className="sidebar-foot">
@@ -121,13 +142,19 @@ export default function App() {
             <button className="btn" style={{ width: '100%', marginBottom: 8 }} onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}>
               ⚙ Settings
             </button>
-            {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+            <AnimatePresence>
+              {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+            </AnimatePresence>
           </div>
           <span className="foot-note">Bishop's Opening &middot; Alien Gambit &middot; London &middot; Caro-Kann</span>
         </div>
       </aside>
       <main className="main">
-        <Current />
+        <AnimatePresence mode="wait">
+          <motion.div key={page} {...PAGE_ANIM}>
+            <Current />
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );

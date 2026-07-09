@@ -267,6 +267,13 @@ export default function Analyzer() {
   // each time you step to a new position, re-hide the engine (assess-first mode)
   // and clear any on-demand explanation (it's position-specific)
   useEffect(() => { setRevealed(false); setPosExplain(null); }, [cursor]);
+
+  // keep the current move visible as you step through the game
+  const movesRef = useRef(null);
+  useEffect(() => {
+    const el = movesRef.current && movesRef.current.querySelector('.mv.current');
+    if (el) el.scrollIntoView({ block: 'nearest' });
+  }, [cursor]);
   const engineHidden = assessFirst && !revealed;
 
   // live engine for the analysis board (engine-lines panel + arrow + eval bar)
@@ -654,7 +661,7 @@ export default function Analyzer() {
 
               <div className="panel">
                 <h3>Moves</h3>
-                <div className="movelist">
+                <div className="movelist scrolly" ref={movesRef}>
                   {result.moves.map((m, i) => {
                     const meta = m.tag ? TAG_META[m.tag] : null;
                     return (

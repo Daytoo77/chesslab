@@ -1,35 +1,35 @@
 :root {
-  /* v13 — near-neutral dark (Linear-inspired): deep, calm, high-contrast */
-  --bg: #0a0b0e;
-  --bg2: #101217;
-  --bg3: #15171e;
-  --surface: #101217;
-  --surface-raised: #171921;
-  --panel: rgba(255, 255, 255, 0.04);    /* glass fill (floaters) */
-  --panel-solid: #101217;                /* opaque panels */
-  --panel2: rgba(255, 255, 255, 0.06);
-  --border: rgba(255, 255, 255, 0.065);
-  --border-strong: rgba(255, 255, 255, 0.125);
+  /* v15 — warm navy + gold glow: rich deep blues, warm light, soft depth */
+  --bg: #060a15;
+  --bg2: #0b1124;
+  --bg3: #101836;
+  --surface: #0c1328;
+  --surface-raised: #131c3a;
+  --panel: rgba(160, 185, 255, 0.05);    /* glass fill (floaters) */
+  --panel-solid: #0c1328;                /* opaque panels */
+  --panel2: rgba(160, 185, 255, 0.08);
+  --border: rgba(150, 175, 235, 0.11);
+  --border-strong: rgba(150, 175, 235, 0.22);
   /* warm gold primary accent */
-  --gold: #c9a84c;
-  --gold-soft: #f0d070;
-  --gold-dim: rgba(201, 168, 76, 0.12);
+  --gold: #d3ab4e;
+  --gold-soft: #f4d67c;
+  --gold-dim: rgba(211, 171, 78, 0.13);
   /* teal secondary accent — live indicators, brilliant, interactive */
   --teal: #2dd4bf;
   --teal-dim: rgba(45, 212, 191, 0.1);
   --teal-border: rgba(45, 212, 191, 0.25);
   /* text */
-  --text: #f2f3f7;
-  --muted: #969db0;
-  --sub: #5e6575;
+  --text: #f0f3fd;
+  --muted: #93a0c2;
+  --sub: #5f6b8d;
   --good: #4ade80;
   --bad: #f87171;
   --info: #60a5fa;
   --mono: "SF Mono", "Cascadia Code", "Cascadia Mono", "JetBrains Mono", "Consolas", ui-monospace, monospace;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 30px -14px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 2px 5px rgba(0, 0, 0, 0.4), 0 28px 70px -26px rgba(0, 0, 0, 0.75);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --shadow: 0 8px 30px -12px rgba(2, 6, 23, 0.72);
+  --shadow-lg: 0 24px 70px -22px rgba(2, 6, 23, 0.88);
   --blur: saturate(160%) blur(16px);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -90,15 +90,16 @@ html, body {
   font-feature-settings: "cv02", "cv03", "cv04", "ss01";
 }
 
-/* atmospheric glow — barely-there warmth behind all content */
+/* atmospheric glow — warm gold light over deep blue night */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(1000px 620px at 74% -8%, rgba(201, 168, 76, 0.05), transparent 56%),
-    radial-gradient(760px 520px at 4% 0%, rgba(45, 212, 191, 0.035), transparent 50%),
+    radial-gradient(1000px 640px at 74% -8%, rgba(211, 171, 78, 0.10), transparent 58%),
+    radial-gradient(760px 520px at 4% 0%, rgba(45, 212, 191, 0.06), transparent 52%),
+    radial-gradient(1100px 900px at 50% 118%, rgba(64, 96, 190, 0.09), transparent 60%),
     var(--bg);
 }
 
@@ -130,7 +131,7 @@ body::before {
 .sidebar {
   width: 232px;
   flex-shrink: 0;
-  background: #0c0d11;
+  background: linear-gradient(180deg, #091023 0%, #070c1a 100%);
   border-right: 1px solid var(--border);
   padding: 20px 14px 16px;
   position: sticky;
@@ -198,12 +199,12 @@ body::before {
   text-align: left;
   transition: color 0.14s, background 0.14s;
 }
-.nav button:hover { color: var(--text); background: rgba(255, 255, 255, 0.045); }
+.nav button:hover { color: var(--text); background: rgba(160, 185, 255, 0.06); }
 .nav button.active {
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--gold-soft);
+  background: rgba(211, 171, 78, 0.10);
   font-weight: 600;
-  box-shadow: inset 2px 0 0 var(--gold);
+  box-shadow: inset 2px 0 0 var(--gold), inset 0 0 0 1px rgba(211, 171, 78, 0.16);
 }
 .nav button.active .icon { color: var(--gold); }
 .nav .icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; transition: color 0.15s; }
@@ -236,7 +237,7 @@ body::before {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 22px 24px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 /* glass variant — only for floaters/popovers */
 .panel.glass {
@@ -395,14 +396,17 @@ textarea.pgn-input:focus { outline: none; border-color: rgba(201, 168, 76, 0.55)
   width: 100%;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.07), var(--shadow-lg);
+  box-shadow:
+    0 0 0 1px rgba(150, 175, 235, 0.13),
+    var(--shadow-lg),
+    0 0 46px -14px rgba(211, 171, 78, 0.18);
 }
 .board-with-eval { display: flex; gap: 8px; align-items: stretch; }
 
 .evalbar { display: flex; flex-direction: column; align-items: center; width: 24px; flex-shrink: 0; }
 .evalbar-track {
   position: relative; flex: 1; width: 12px;
-  background: #1b1d25; border-radius: 6px; overflow: hidden;
+  background: #161d36; border-radius: 6px; overflow: hidden;
   border: 1px solid var(--border);
 }
 .evalbar-white { position: absolute; left: 0; width: 100%; background: #e8eaf0; transition: height 0.5s ease, top 0.5s ease, bottom 0.5s ease; }
@@ -474,7 +478,7 @@ textarea.pgn-input:focus { outline: none; border-color: rgba(201, 168, 76, 0.55)
 /* ---------- Settings popover ---------- */
 .settings-pop {
   position: absolute; bottom: 48px; left: 0; width: 244px; z-index: 50;
-  background: rgba(18, 20, 27, 0.92);
+  background: rgba(12, 19, 42, 0.92);
   backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
   border: 1px solid var(--border-strong); border-radius: var(--radius);
   padding: 16px; box-shadow: var(--shadow-lg);
@@ -592,7 +596,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
     position: fixed; bottom: 0; left: 0; right: 0; top: auto; z-index: 90;
     height: auto; padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
     border-right: none; border-top: 1px solid var(--border);
-    background: rgba(12, 13, 17, 0.92); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    background: rgba(8, 15, 32, 0.92); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
     flex-direction: row; align-items: center;
   }
   .brand { display: none; }

@@ -23,10 +23,13 @@ const SECTIONS = [
 ];
 const NAV_GROUPS = ['Play', 'Train', 'Analyze'];
 
+// Enter-only page animation. Deliberately NO AnimatePresence/exit around pages:
+// mode="wait" gates the swap on the exit animation finishing, which hangs the
+// whole app if rAF is throttled (hidden/zero-size viewport). Enter-only always
+// swaps instantly and animates when frames are available.
 const PAGE_ANIM = {
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
   transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
 };
 
@@ -151,15 +154,13 @@ export default function App() {
               {showSettings && <Settings onClose={() => setShowSettings(false)} />}
             </AnimatePresence>
           </div>
-          <span className="foot-note">Bishop's Opening &middot; Alien Gambit &middot; London &middot; Caro-Kann</span>
+          <span className="foot-note">Bishop's Opening &middot; Vienna &middot; Alien Gambit &middot; Caro-Kann &middot; Slav</span>
         </div>
       </aside>
       <main className="main">
-        <AnimatePresence mode="wait">
-          <motion.div key={page} {...PAGE_ANIM}>
-            <Current />
-          </motion.div>
-        </AnimatePresence>
+        <motion.div key={page} {...PAGE_ANIM}>
+          <Current />
+        </motion.div>
       </main>
     </div>
   );

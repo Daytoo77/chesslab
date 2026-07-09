@@ -82,14 +82,14 @@ function EvalGraph({ evals, cursor, moves, onSeek }) {
         <clipPath id="eg-top"><rect x="0" y="0" width={W} height={H / 2} /></clipPath>
         <clipPath id="eg-bot"><rect x="0" y={H / 2} width={W} height={H / 2} /></clipPath>
       </defs>
-      <rect x="0" y="0" width={W} height={H} fill="#0d0e13" rx="6" />
+      <rect x="0" y="0" width={W} height={H} fill="#0a101f" rx="6" />
       <polygon points={area} fill="rgba(232, 234, 240, 0.82)" clipPath="url(#eg-top)" />
       <polygon points={area} fill="rgba(0, 0, 0, 0.5)" clipPath="url(#eg-bot)" />
       <line x1="0" y1={H / 2} x2={W} y2={H / 2} stroke="rgba(255,255,255,0.14)" strokeWidth="1" />
       <polyline points={pts} fill="none" stroke="#d9a943" strokeWidth="1.5" />
       {marks.map((m, i) => (
         <circle key={i} cx={x(m.i)} cy={y(evals[m.i])} r={hi === m.i ? 5 : 3.4}
-          fill={m.color} stroke="#0d0e13" strokeWidth="1.2" style={{ transition: 'r 0.12s' }} />
+          fill={m.color} stroke="#0a101f" strokeWidth="1.2" style={{ transition: 'r 0.12s' }} />
       ))}
       <line x1={x(Math.min(cursor, n - 1))} y1="0" x2={x(Math.min(cursor, n - 1))} y2={H} stroke="#7da3e0" strokeWidth="1.2" />
       {hi != null && (
@@ -97,7 +97,7 @@ function EvalGraph({ evals, cursor, moves, onSeek }) {
           <line x1={x(hi)} y1="0" x2={x(hi)} y2={H} stroke="rgba(240,208,112,0.75)" strokeWidth="1" strokeDasharray="3 3" />
           <circle cx={x(hi)} cy={y(evals[hi])} r="3.2" fill="#f0d070" />
           <g transform={`translate(${tipX}, ${y(evals[hi]) > H / 2 ? 6 : H - 36})`}>
-            <rect width={tipW} height="30" rx="6" fill="rgba(16,18,23,0.95)" stroke="rgba(255,255,255,0.16)" />
+            <rect width={tipW} height="30" rx="6" fill="rgba(12,19,42,0.95)" stroke="rgba(255,255,255,0.16)" />
             <text x="9" y="13" fontSize="10" fill="#f2f3f7" fontWeight="700" style={{ fontFamily: 'var(--mono)' }}>
               {hMove ? `${Math.ceil(hi / 2)}${hi % 2 ? '.' : '…'} ${hMove.san}${hMeta && hMeta.label ? ' ' + hMeta.label : ''}` : 'Start position'}
             </text>

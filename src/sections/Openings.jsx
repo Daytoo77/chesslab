@@ -426,7 +426,7 @@ export default function Openings() {
             {mode === 'play' && (
               <div className="panel">
                 <h3>Middlegame test</h3>
-                <p className="small" style={{ lineHeight: 1.6 }}>Theory is over — now play the plans: {opening.id === 'london' ? 'Ne5, f4, and the kingside squeeze.' : opening.id === 'caro' ? 'the ...c5 break and the good bishop.' : opening.id === 'alien' ? 'pile every piece on the naked king.' : 'pressure on f7 and the e-file.'} The coach plays at a club level — beat it with ideas, not tricks.</p>
+                <p className="small" style={{ lineHeight: 1.6 }}>Theory is over — now play the plans: {opening.id === 'vienna' ? 'the f-file, the e5 space, and the kingside storm.' : opening.id === 'caro' ? 'the ...c5 break and the good bishop.' : opening.id === 'alien' ? 'pile every piece on the naked king.' : 'pressure on f7 and the e-file.'} The coach plays at a club level — beat it with ideas, not tricks.</p>
               </div>
             )}
           </div>

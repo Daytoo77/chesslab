@@ -1,4 +1,13 @@
-# ChessLab — Training Suite (v14)
+# ChessLab — Training Suite (v15)
+
+## v15 — warm navy theme, the Vienna, and a self-configuring coach
+- **Theme redo**: the flat near-black look is gone — deep warm navy surfaces, stronger gold glow, softer radii, atmospheric gold/teal light. (Same structure and motion as v13/v14, new skin.)
+- **Vienna Game repertoire** (8 lines, replaces the London as the second White weapon): Vienna Gambit main line + 5...Nxc3 attack setup, the 3...exf4? and 3...d6 punishments, the Bc4 f4-clamp vs 2...Nc6, the 4.Qg4 poison vs ...Bc5 — **including the critical lesson that 5.Qxg7?? loses to ...Bxf2+/...Ng4+** (engine-verified at −3.5; the line teaches the correct 5.Qg3) — and a central-strike line vs 2...Bc5.
+- **Extra lines**: Caro-Kann vs the Fantasy (3.f3) and vs 2.Bc4?!; Slav vs the Colle. Every new line replayed for legality with chess.js and its final position engine-checked; annotations state honest evals ("balanced but easier to play") instead of fantasy claims.
+- **Robustness fix**: page transitions no longer gate on exit animations (`mode="wait"` could freeze navigation when the tab was throttled — enter-only animation now).
+- The local `ChessLab.html` build self-configures the AI coach key from a post-build step that lives outside this repo — the key is never in the source.
+
+
 
 ## v14 — next-gen analysis + the AI Coach (pillars 2 & 3)
 - **Interactive eval chart**: hover to scrub — crosshair, live tooltip (move, classification, eval), critical turning points marked in their classification colors (blunder/miss/mistake/brilliant/great); white/black advantage areas split around the midline. Click still seeks the board.

@@ -1,7 +1,7 @@
 // Offline-first service worker — but NETWORK-FIRST for the page itself, so a
 // new build shows up on the next reload (the old cache-first shell needed two
 // reloads to pick up an update).
-const CACHE = 'chesslab-v15';
+const CACHE = 'chesslab-v16';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));

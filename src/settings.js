@@ -24,6 +24,7 @@ export const useSettings = create(
       autoQueen: false,      // skip the promotion picker
       evalBarPlay: false,    // live eval bar while playing vs a bot
       hifiSound: true,       // richer sound set
+      geminiKey: '',         // AI coach key — lives ONLY in this browser's localStorage
       set: (patch) => set(patch),
     }),
     { name: 'chesslab_settings_v1' }

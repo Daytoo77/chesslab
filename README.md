@@ -1,4 +1,14 @@
-# ChessLab — Training Suite (v13)
+# ChessLab — Training Suite (v14)
+
+## v14 — next-gen analysis + the AI Coach (pillars 2 & 3)
+- **Interactive eval chart**: hover to scrub — crosshair, live tooltip (move, classification, eval), critical turning points marked in their classification colors (blunder/miss/mistake/brilliant/great); white/black advantage areas split around the midline. Click still seeks the board.
+- **Animated accuracy rings**: circular progress rings for White/Black fill and count up when a Game Review lands.
+- **Animated engine arrows**: board arrows draw in and gently pulse (`arrow-in`/`arrow-pulse`).
+- **🧑‍🏫 AI Coach (Gemini)**: a chat panel beside the analysis board. Every question ships with a fresh *engine-data block* — FEN, live Stockfish lines, evals, move tags — and the system prompt forbids ungrounded claims, so answers explain rather than hallucinate. Ask "why couldn't I take that pawn?" and it answers from the actual lines.
+  - **Bring your own key**: paste a free Google AI Studio key in Settings (or in the coach panel itself). The key is stored **only in your browser's localStorage** — never bundled in the app, never in this repo.
+  - Respects "assess first" mode (the coach hides with the rest of the engine until you commit your verdict). The offline engine-grounded explainer remains the no-key fallback.
+
+
 
 ## v13 — premium visual identity (pillar 1 of the next-gen overhaul)
 - **Neutral-dark design language** (Linear-inspired): near-black `#0a0b0e` base, calm opaque surfaces, hairline borders, refined shadows, tighter radii, more negative space, `:focus-visible` rings.

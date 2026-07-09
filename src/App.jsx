@@ -97,6 +97,11 @@ function Settings({ onClose }) {
         <span>Blindfold mode</span>
         <input type="checkbox" checked={blindfold} onChange={toggleBlindfold} />
       </label>
+      <label className="settings-row" style={{ display: 'block' }}>
+        <span>Gemini API key <span style={{ color: 'var(--sub)' }}>· AI coach</span></span>
+        <input type="password" className="key-input" placeholder="stored only on this device"
+          value={settings.geminiKey} onChange={(e) => settings.set({ geminiKey: e.target.value })} />
+      </label>
       <button className="btn" style={{ width: '100%', marginTop: 8 }} onClick={onClose}>Done</button>
     </motion.div>
   );

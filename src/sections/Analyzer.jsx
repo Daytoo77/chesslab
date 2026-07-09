@@ -3,6 +3,7 @@ import { Chess } from 'chess.js';
 import Board from '../components/Board.jsx';
 import EvalBar from '../components/EvalBar.jsx';
 import ClassBadge from '../components/ClassBadge.jsx';
+import CoachChat from '../components/CoachChat.jsx';
 import { reviewExtras } from '../review.js';
 import { narrateGame, explainPosition } from '../narrate.js';
 import { MOTIF_META } from '../motifs.js';
@@ -44,28 +45,99 @@ const TAG_META = {
 const LEGEND_TAGS = ['brilliant', 'great', 'best', 'excellent', 'good', 'book', 'inaccuracy', 'miss', 'mistake', 'blunder'];
 const QUALITY = { fast: 300, strong: 600, deep: 1200 };
 
-function EvalGraph({ evals, cursor, mistakes, onSeek }) {
+// Interactive area chart: hover to scrub (crosshair + tooltip with move, tag and
+// eval), critical turning points marked in their classification color, white/black
+// advantage areas split around the midline. Click seeks the board.
+const GRAPH_TAGS = {
+  blunder: 'var(--c-blunder)', miss: 'var(--c-miss)', mistake: 'var(--c-mistake)',
+  brilliant: 'var(--c-brilliant)', great: 'var(--c-great)',
+};
+function EvalGraph({ evals, cursor, moves, onSeek }) {
+  const [hover, setHover] = useState(null);
   if (!evals || evals.length < 2) return null;
-  const W = 600, H = 80;
+  const W = 600, H = 96, PAD = 6;
   const n = evals.length;
   const x = (i) => (i / (n - 1)) * W;
-  const y = (cp) => H / 2 - (Math.max(-600, Math.min(600, cp)) / 600) * (H / 2 - 5);
+  const y = (cp) => H / 2 - (Math.max(-600, Math.min(600, cp)) / 600) * (H / 2 - PAD);
   const pts = evals.map((e, i) => `${x(i).toFixed(1)},${y(e).toFixed(1)}`).join(' ');
+  const area = `0,${H / 2} ${pts} ${W},${H / 2}`;
+  const marks = (moves || [])
+    .map((m, i) => (GRAPH_TAGS[m.tag] ? { i: i + 1, color: GRAPH_TAGS[m.tag] } : null))
+    .filter(Boolean);
+  const idxFromEvent = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    return Math.max(0, Math.min(n - 1, Math.round(((e.clientX - r.left) / r.width) * (n - 1))));
+  };
+  const hi = hover;
+  const hMove = hi > 0 && moves ? moves[hi - 1] : null;
+  const hMeta = hMove && hMove.tag ? TAG_META[hMove.tag] : null;
+  const evTxt = (cp) => (cp >= 0 ? '+' : '') + (cp / 100).toFixed(1);
+  const tipW = 128, tipX = hi != null ? Math.min(Math.max(x(hi) - tipW / 2, 4), W - tipW - 4) : 0;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="eval-graph"
-      onClick={(e) => {
-        const r = e.currentTarget.getBoundingClientRect();
-        onSeek(Math.round(((e.clientX - r.left) / r.width) * (n - 1)));
-      }}>
-      <rect x="0" y="0" width={W} height={H} fill="#0a0f1b" rx="6" />
-      <polygon points={`0,${H / 2} ${pts} ${W},${H / 2}`} fill="rgba(217,169,67,0.18)" />
-      <line x1="0" y1={H / 2} x2={W} y2={H / 2} stroke="#243153" strokeWidth="1" />
-      <polyline points={pts} fill="none" stroke="#d9a943" strokeWidth="1.6" />
-      {mistakes.map((m, i) => (
-        <circle key={i} cx={x(m.index + 1)} cy={y(evals[m.index + 1])} r="3.5" fill="#e06c6c" />
+      onClick={(e) => onSeek(idxFromEvent(e))}
+      onMouseMove={(e) => setHover(idxFromEvent(e))}
+      onMouseLeave={() => setHover(null)}>
+      <defs>
+        <clipPath id="eg-top"><rect x="0" y="0" width={W} height={H / 2} /></clipPath>
+        <clipPath id="eg-bot"><rect x="0" y={H / 2} width={W} height={H / 2} /></clipPath>
+      </defs>
+      <rect x="0" y="0" width={W} height={H} fill="#0d0e13" rx="6" />
+      <polygon points={area} fill="rgba(232, 234, 240, 0.82)" clipPath="url(#eg-top)" />
+      <polygon points={area} fill="rgba(0, 0, 0, 0.5)" clipPath="url(#eg-bot)" />
+      <line x1="0" y1={H / 2} x2={W} y2={H / 2} stroke="rgba(255,255,255,0.14)" strokeWidth="1" />
+      <polyline points={pts} fill="none" stroke="#d9a943" strokeWidth="1.5" />
+      {marks.map((m, i) => (
+        <circle key={i} cx={x(m.i)} cy={y(evals[m.i])} r={hi === m.i ? 5 : 3.4}
+          fill={m.color} stroke="#0d0e13" strokeWidth="1.2" style={{ transition: 'r 0.12s' }} />
       ))}
       <line x1={x(Math.min(cursor, n - 1))} y1="0" x2={x(Math.min(cursor, n - 1))} y2={H} stroke="#7da3e0" strokeWidth="1.2" />
+      {hi != null && (
+        <g pointerEvents="none">
+          <line x1={x(hi)} y1="0" x2={x(hi)} y2={H} stroke="rgba(240,208,112,0.75)" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx={x(hi)} cy={y(evals[hi])} r="3.2" fill="#f0d070" />
+          <g transform={`translate(${tipX}, ${y(evals[hi]) > H / 2 ? 6 : H - 36})`}>
+            <rect width={tipW} height="30" rx="6" fill="rgba(16,18,23,0.95)" stroke="rgba(255,255,255,0.16)" />
+            <text x="9" y="13" fontSize="10" fill="#f2f3f7" fontWeight="700" style={{ fontFamily: 'var(--mono)' }}>
+              {hMove ? `${Math.ceil(hi / 2)}${hi % 2 ? '.' : '…'} ${hMove.san}${hMeta && hMeta.label ? ' ' + hMeta.label : ''}` : 'Start position'}
+            </text>
+            <text x="9" y="25" fontSize="9" fill="#969db0" style={{ fontFamily: 'var(--mono)' }}>
+              {evTxt(evals[hi])}{hMeta ? ` · ${hMeta.name}` : ''}
+            </text>
+          </g>
+        </g>
+      )}
     </svg>
+  );
+}
+
+// Animated accuracy ring — fills and counts up when the review lands.
+function AccuracyRing({ value, label, tone }) {
+  const R = 30, C = 2 * Math.PI * R;
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    let raf; const t0 = performance.now();
+    const tick = (t) => {
+      const p = Math.min(1, (t - t0) / 900);
+      setShown((1 - Math.pow(1 - p, 3)) * (value || 0));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  const off = C * (1 - Math.min(100, shown) / 100);
+  return (
+    <div className={`acc-ring ${tone}`}>
+      <svg viewBox="0 0 76 76" width="76" height="76">
+        <circle cx="38" cy="38" r={R} fill="none" stroke="rgba(255,255,255,0.09)" strokeWidth="6" />
+        <circle cx="38" cy="38" r={R} fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round"
+          strokeDasharray={C} strokeDashoffset={off} transform="rotate(-90 38 38)" />
+        <text x="38" y="43" textAnchor="middle" fontSize="15" fontWeight="800" fill="var(--text)" style={{ fontFamily: 'var(--mono)' }}>
+          {(shown || 0).toFixed(1)}
+        </text>
+      </svg>
+      <span className="acc-ring-label" title={label}>{label}</span>
+    </div>
   );
 }
 
@@ -442,7 +514,11 @@ export default function Analyzer() {
 
             <div className="report-card gr-graphcard">
               <div className="rc-head">{result.engine}{opening ? ` · ${opening}` : ''}</div>
-              <EvalGraph evals={S.evals} cursor={cursor} mistakes={result.mistakes} onSeek={(i) => { setCursor(i); setActiveMistake(null); }} />
+              <EvalGraph evals={S.evals} cursor={cursor} moves={result.moves} onSeek={(i) => { setCursor(i); setActiveMistake(null); }} />
+              <div className="acc-rings">
+                <AccuracyRing value={S.acc.w} label={headers.white} tone="w" />
+                <AccuracyRing value={S.acc.b} label={headers.black} tone="b" />
+              </div>
             </div>
 
             <div className="gr-panel">
@@ -563,6 +639,11 @@ export default function Analyzer() {
                   {posExplain.alt && <p className="small muted" style={{ margin: '4px 0 0' }}>{posExplain.alt}</p>}
                   {posExplain.struct && <p className="small" style={{ margin: '6px 0 0', color: 'var(--gold-soft)' }}>{posExplain.struct}</p>}
                   <p className="small muted" style={{ margin: '8px 0 0', fontStyle: 'italic' }}>Grounded in the live engine line — no invented moves.</p>
+                </div>
+              )}
+              {!engineHidden && (
+                <div style={{ marginTop: 10 }}>
+                  <CoachChat fen={fen} lines={liveLines} evalWhite={liveEvalW} moves={result.moves} cursor={cursor} playerColor={color} />
                 </div>
               )}
               <p className="small muted" style={{ textAlign: 'center', marginTop: 6 }}>← → move · B engine arrow · F flip · click the graph</p>

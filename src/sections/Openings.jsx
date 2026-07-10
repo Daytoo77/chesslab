@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import Board from '../components/Board.jsx';
+import CoachChat from '../components/CoachChat.jsx';
+import { buildOpeningContext } from '../coach.js';
 import { OPENINGS } from '../data/openings.js';
 import { mergeOpenings } from '../data/openings2.js';
 import { useStats, lineDue, srsLabel } from '../store.js';
@@ -406,6 +408,18 @@ export default function Openings() {
                     </div>
                   )}
                 </div>
+                <CoachChat
+                  getContext={() => buildOpeningContext({ fen: studyGame.fen(), openingName: opening.name, lineName: line.name, summary: opening.summary, moves: line.moves, ply, userColor })}
+                  badge="Gemini · knows this opening"
+                  intro="Stepping through the line? Ask the coach to explain the position you're in — the plans, the ideas, why each move is played. It reads the repertoire's own notes."
+                  keyBlurb="Get a Gemini-powered coach to explain every position in this opening — the plans, the threats, the ideas behind each move."
+                  placeholder="Ask about this position… e.g. why do we play this move?"
+                  suggestions={[
+                    ply === 0 ? "What's the big idea of this opening?" : 'Explain the position we\'re in right now.',
+                    'What are both sides trying to do here?',
+                    ply < line.moves.length ? 'Why is the next move played?' : 'What are my middlegame plans from here?',
+                  ]}
+                />
               </>
             )}
 

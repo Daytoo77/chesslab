@@ -1,16 +1,25 @@
-// Interactive Q&A with the Gemini coach, alongside the analysis board.
-// Every question is grounded in the CURRENT position + live engine lines.
+// Interactive Q&A with the Gemini coach. The caller supplies `getContext()`,
+// which returns a fresh grounding block for the CURRENT position (engine lines
+// in the analyzer, repertoire notes in the opening trainer) — evaluated at
+// send-time so follow-up questions always track the board.
 import React, { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../settings.js';
-import { askCoach, buildCoachContext } from '../coach.js';
+import { askCoach } from '../coach.js';
 
-const SUGGESTIONS = [
+const DEFAULT_SUGG = [
   'Why was my last move a mistake?',
   "What's the plan in this position?",
   'What should I watch out for here?',
 ];
 
-export default function CoachChat({ fen, lines, evalWhite, moves, cursor, playerColor }) {
+export default function CoachChat({
+  getContext,
+  badge = 'Gemini · sees the engine',
+  suggestions = DEFAULT_SUGG,
+  intro = 'Ask anything about the position on the board. The coach reads the live engine lines, so its advice is grounded — not guessed.',
+  placeholder = 'Ask the coach… e.g. why couldn\'t I take that pawn?',
+  keyBlurb = 'Chat about any position with a Gemini-powered coach that sees the live engine lines.',
+}) {
   const geminiKey = useSettings((s) => s.geminiKey);
   const set = useSettings((s) => s.set);
   const [msgs, setMsgs] = useState([]);
@@ -26,7 +35,7 @@ export default function CoachChat({ fen, lines, evalWhite, moves, cursor, player
     if (!q || busy) return;
     setInput('');
     setError(null);
-    const context = buildCoachContext({ fen, lines, evalWhite, moves, cursor, playerColor });
+    const context = getContext();
     const history = [...msgs, { role: 'user', text: q }];
     setMsgs(history);
     setBusy(true);
@@ -47,8 +56,7 @@ export default function CoachChat({ fen, lines, evalWhite, moves, cursor, player
       <div className="panel coach-chat">
         <h3>🧑‍🏫 AI Coach</h3>
         <p className="small muted" style={{ marginTop: 0 }}>
-          Chat about any position with a Gemini-powered coach that sees the live engine lines.
-          Paste a Google AI Studio API key — it is stored <b>only in this browser</b>, never in the app's code.
+          {keyBlurb} Paste a Google AI Studio API key — it is stored <b>only in this browser</b>, never in the app's code.
         </p>
         <div className="coach-input-row">
           <input type="password" placeholder="Gemini API key" value={keyDraft}
@@ -63,27 +71,22 @@ export default function CoachChat({ fen, lines, evalWhite, moves, cursor, player
   return (
     <div className="panel coach-chat">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-        <h3 style={{ margin: 0 }}>🧑‍🏫 AI Coach <span className="chip teal" style={{ marginLeft: 6 }}>Gemini · sees the engine</span></h3>
+        <h3 style={{ margin: 0 }}>🧑‍🏫 AI Coach <span className="chip teal" style={{ marginLeft: 6 }}>{badge}</span></h3>
         {msgs.length > 0 && <button className="btn btn-mini" onClick={() => { setMsgs([]); setError(null); }}>Clear</button>}
       </div>
       <div className="coach-log" ref={logRef}>
-        {msgs.length === 0 && (
-          <p className="small muted" style={{ margin: '8px 0' }}>
-            Ask anything about the position on the board. The coach reads the live engine lines,
-            so its advice is grounded — not guessed.
-          </p>
-        )}
+        {msgs.length === 0 && <p className="small muted" style={{ margin: '8px 0' }}>{intro}</p>}
         {msgs.map((m, i) => <div key={i} className={`coach-msg ${m.role}`}>{m.text}</div>)}
         {busy && <div className="coach-msg coach"><span className="thinking-dots"><span>●</span><span>●</span><span>●</span></span></div>}
       </div>
       {error && <div className="small" style={{ color: 'var(--bad)', margin: '4px 0 8px' }}>⚠ {error}</div>}
       {msgs.length === 0 && !busy && (
         <div className="coach-sugg">
-          {SUGGESTIONS.map((s) => <button key={s} className="chip" onClick={() => send(s)}>{s}</button>)}
+          {suggestions.map((s) => <button key={s} className="chip" onClick={() => send(s)}>{s}</button>)}
         </div>
       )}
       <div className="coach-input-row">
-        <input value={input} placeholder="Ask the coach… e.g. why couldn't I take that pawn?"
+        <input value={input} placeholder={placeholder}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') send(); }}
           disabled={busy} />

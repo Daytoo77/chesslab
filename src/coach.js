@@ -11,8 +11,9 @@ const URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:ge
 const SYSTEM = `You are the ChessLab Coach: a warm, encouraging chess coach with grandmaster-level understanding, talking to an improving club player.
 
 HARD RULES:
-- Ground EVERY claim in the ENGINE DATA block provided with the question (FEN, engine lines, evals, move tags). Never invent moves, evaluations, or variations that are not derivable from it.
-- If the data doesn't answer the question, say so briefly and suggest what to look at instead. Never bluff.
+- Ground your answer in the DATA block provided with the question (FEN, and — when present — engine lines, evals, move tags, or repertoire notes). Never invent concrete tactical variations or specific evaluations that aren't supported by the data.
+- When the data includes engine lines/evals, defer to them. When it is an OPENING TRAINER position (no engine lines), you MAY draw on well-known principles and standard theory of the named opening to explain plans and ideas — but still describe the actual position on the board, and don't fabricate exact winning lines.
+- If you genuinely can't answer from the position, say so briefly and suggest what to look at. Never bluff.
 - Use SAN notation (Nf3, exd5, O-O). Evals are from White's point of view.
 - Explain through concepts — pawn structure, king safety, piece activity, outposts, space, tempo, weak squares — in plain, vivid language a club player understands.
 - Be concise: 2-6 short sentences unless the student explicitly asks for depth. Plain text only, no markdown, no bullet lists.
@@ -46,6 +47,35 @@ export function buildCoachContext({ fen, lines, evalWhite, moves, cursor, player
   return out.join('\n');
 }
 
+// Grounding block for the OPENING TRAINER — no engine here, so we hand the coach
+// the FEN plus the repertoire's OWN expert annotations (the `why` notes) and the
+// intended continuation, then let it explain the ideas of the named opening.
+export function buildOpeningContext({ fen, openingName, lineName, summary, moves, ply, userColor }) {
+  const stm = (fen || '').split(' ')[1] === 'b' ? 'Black' : 'White';
+  const out = [
+    'This is an OPENING TRAINER position (opening study, no engine analysis attached).',
+    `Opening: ${openingName}${lineName ? ' — ' + lineName : ''}.`,
+    summary ? `Repertoire's summary of the opening: ${summary}` : '',
+    `FEN: ${fen}`,
+    `Side to move: ${stm}. In this repertoire the student plays ${userColor === 'b' ? 'Black' : 'White'}.`,
+  ].filter(Boolean);
+  if (moves && ply > 0) {
+    const played = moves.slice(0, ply).map((m, i) => `${i % 2 === 0 ? `${i / 2 + 1}.` : ''}${m.san}`).join(' ');
+    out.push(`Moves played to reach this position: ${played}`);
+    const cur = moves[ply - 1];
+    if (cur && cur.why) out.push(`The repertoire's note on the last move (${cur.san}): ${cur.why}`);
+  } else {
+    out.push('This is the starting position of the line.');
+  }
+  if (moves && ply < moves.length) {
+    const nxt = moves[ply];
+    out.push(`The repertoire's next intended move is ${nxt.san}${nxt.why ? ` — ${nxt.why}` : ''}.`);
+  } else if (moves && moves.length) {
+    out.push('This is the end of the prepared theory — the middlegame plans begin here.');
+  }
+  return out.join('\n');
+}
+
 export async function askCoach({ apiKey, context, messages }) {
   if (!apiKey) throw new Error('No API key configured');
   const contents = messages.map((m) => ({
@@ -54,7 +84,7 @@ export async function askCoach({ apiKey, context, messages }) {
   }));
   // fresh grounding rides with the LAST user turn, so follow-ups track the board
   const last = contents[contents.length - 1];
-  last.parts[0].text = `ENGINE DATA:\n${context}\n\nSTUDENT QUESTION: ${last.parts[0].text}`;
+  last.parts[0].text = `POSITION DATA:\n${context}\n\nSTUDENT QUESTION: ${last.parts[0].text}`;
   const res = await fetch(URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },

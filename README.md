@@ -1,4 +1,12 @@
-# ChessLab — Training Suite (v15)
+# ChessLab — Training Suite (v16)
+
+## v16 — dark purple theme + an AI coach inside the Opening Explorer
+- **Dark purple theme**: deep violet-black surfaces (`#0b0716`), a luminous purple accent (`#b07dff`), purple aurora glow, purple board highlights and move-list pills. (Replaces the v15 navy+gold skin per request.)
+- **AI Coach in opening study**: the Gemini coach now lives in the **Opening Explorer** too. As you step through a line, ask it to *"explain the position we're in"*, *"what are both sides trying to do?"*, or *"why is the next move played?"* — it's grounded in the current FEN, the moves played, the repertoire's own expert notes, and the intended continuation, so it explains the real position instead of guessing. Verified: at 1.e4 it explains the Vienna intent; deeper in the gambit it correctly recommends the repertoire's `fxe5`.
+  - `CoachChat` was generalized to take a `getContext()` provider; the analyzer passes engine data, the opening trainer passes repertoire data (`buildOpeningContext`). The coach uses engine lines when present and standard opening principles when studying.
+- **Fix**: the local build's coach-key auto-seed now uses a unique marker so it actually injects (the old guard tripped on the app bundle's own `geminiKey` string and silently skipped seeding).
+
+## v15 — warm navy theme, the Vienna, and a self-configuring coach
 
 ## v15 — warm navy theme, the Vienna, and a self-configuring coach
 - **Theme redo**: the flat near-black look is gone — deep warm navy surfaces, stronger gold glow, softer radii, atmospheric gold/teal light. (Same structure and motion as v13/v14, new skin.)

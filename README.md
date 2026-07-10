@@ -1,4 +1,15 @@
-# ChessLab — Training Suite (v16)
+# ChessLab — Training Suite (v17)
+
+## v17 — organised analysis workspace + a bigger repertoire
+- **Game Analyzer reorganised**: the board is now pinned on the left (sticky) with a **tabbed panel** on the right — **Report · Engine · Mistakes · Moves · Coach**. No more scrolling past a tall report to reach the board and controls; you pick the panel you need and the board never moves. Stacks cleanly on mobile.
+- **+4 lines for every opening** (20 new, all legality-checked with chess.js and engine-verified):
+  - **Bishop's Opening**: vs 2...Bc5 (Pianissimo), vs 2...Nc6 (Nc3), vs 2...Be7 (Hungarian), and the 3.d4 **Urusov Gambit**.
+  - **Vienna**: quiet 3.g3 vs 2...Nf6 and vs ...Bc5, 3.g3 vs 2...Nc6, and the Na4 bishop-pair grab vs 2...Bc5.
+  - **Alien Gambit**: the four ways Black *declines* the Nxf7 gambit (Classical 4...Bf5, Karpov 4...Nd7, 3...Nf6 Advance, 3...g6 Modern) — your sound plan when Black won't cooperate.
+  - **Caro-Kann**: Advance Short System & the ...c5 break, Classical Karpov 4...Nd7 and Forgács 4...Nf6 5...exf6.
+  - **Slav**: Chebanenko 4...a6, Schlechter ...g6, Semi-Slav Meran, and early ...Bf5 vs 3.Nf3.
+
+## v16 — dark purple theme + an AI coach inside the Opening Explorer
 
 ## v16 — dark purple theme + an AI coach inside the Opening Explorer
 - **Dark purple theme**: deep violet-black surfaces (`#0b0716`), a luminous purple accent (`#b07dff`), purple aurora glow, purple board highlights and move-list pills. (Replaces the v15 navy+gold skin per request.)

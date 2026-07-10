@@ -45,6 +45,14 @@ const TAG_META = {
 };
 const LEGEND_TAGS = ['brilliant', 'great', 'best', 'excellent', 'good', 'book', 'inaccuracy', 'miss', 'mistake', 'blunder'];
 const QUALITY = { fast: 300, strong: 600, deep: 1200 };
+// right-hand workspace tabs — board stays pinned, you pick the panel you need
+const AZ_TABS = [
+  ['report', '📊 Report'],
+  ['engine', '⚙ Engine'],
+  ['mistakes', '✗ Mistakes'],
+  ['moves', '☰ Moves'],
+  ['coach', '🧑‍🏫 Coach'],
+];
 
 // Interactive area chart: hover to scrub (crosshair + tooltip with move, tag and
 // eval), critical turning points marked in their classification color, white/black
@@ -340,6 +348,8 @@ export default function Analyzer() {
   // each time you step to a new position, re-hide the engine (assess-first mode)
   // and clear any on-demand explanation (it's position-specific)
   useEffect(() => { setRevealed(false); setPosExplain(null); }, [cursor]);
+  // a fresh analysis lands on the Report tab
+  useEffect(() => { if (result) setSideTab('report'); }, [result]);
 
   // keep the current move visible as you step through the game
   const movesRef = useRef(null);
@@ -504,99 +514,8 @@ export default function Analyzer() {
       )}
 
       {result && (
-        <div className="az-wrap">
-          <div className="gr-wrap">
-            {extras && extras.comment && (
-              <div className="gr-coach">
-                <div className="gr-coach-face">🧑‍🏫</div>
-                <div className="gr-coach-bubble">{extras.comment}</div>
-              </div>
-            )}
-
-            <div className="report-card gr-graphcard">
-              <div className="rc-head">{result.engine}{opening ? ` · ${opening}` : ''}</div>
-              <EvalGraph evals={S.evals} cursor={cursor} moves={result.moves} onSeek={(i) => { setCursor(i); setActiveMistake(null); }} />
-              <div className="acc-rings">
-                <AccuracyRing value={S.acc.w} label={headers.white} tone="w" />
-                <AccuracyRing value={S.acc.b} label={headers.black} tone="b" />
-              </div>
-            </div>
-
-            <div className="gr-panel">
-              <div className="gr-row gr-players">
-                <div className="gr-label" />
-                {[['w', headers.white], ['b', headers.black]].map(([c, name]) => (
-                  <div className="gr-pcell" key={c}>
-                    <div className={`gr-avatar ${c}`}>{initial(name)}</div>
-                    <div className="gr-pname" title={name}>{name}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="gr-row">
-                <div className="gr-label">Accuracy</div>
-                <div className="gr-pcell"><span className={`gr-accbox ${(S.acc.w || 0) >= (S.acc.b || 0) ? 'hi' : 'lo'}`}>{fmt(S.acc.w)}</span></div>
-                <div className="gr-pcell"><span className={`gr-accbox ${(S.acc.b || 0) > (S.acc.w || 0) ? 'hi' : 'lo'}`}>{fmt(S.acc.b)}</span></div>
-              </div>
-
-              <div className="gr-sep" />
-
-              {LEGEND_TAGS.map((t) => (
-                <div className="gr-row gr-classrow" key={t}>
-                  <div className="gr-label" style={{ color: `var(--c-${t === 'inaccuracy' ? 'inacc' : t})` }}>{TAG_META[t].name}</div>
-                  <div className="gr-cnt" style={{ color: `var(--c-${t === 'inaccuracy' ? 'inacc' : t})` }}>{S.counts.w[t] || 0}</div>
-                  <div className="gr-mid"><ClassBadge tag={t} size={26} title={TAG_META[t].name} /></div>
-                  <div className="gr-cnt" style={{ color: `var(--c-${t === 'inaccuracy' ? 'inacc' : t})` }}>{S.counts.b[t] || 0}</div>
-                </div>
-              ))}
-
-              <div className="gr-sep" />
-
-              <div className="gr-row">
-                <div className="gr-label">Game Rating</div>
-                <div className="gr-pcell"><span className="gr-accbox hi">{fmt(ratingFromAccuracy(S.acc.w))}</span></div>
-                <div className="gr-pcell"><span className="gr-accbox lo">{fmt(ratingFromAccuracy(S.acc.b))}</span></div>
-              </div>
-
-              {extras && PHASES.map(([ph, lbl]) => (
-                <div className="gr-row gr-phaserow" key={ph}>
-                  <div className="gr-label">{lbl}</div>
-                  <div className="gr-pcell">{extras.phases[ph] && extras.phases[ph].w ? <ClassBadge tag={extras.phases[ph].w} size={24} /> : <span className="gr-dash">–</span>}</div>
-                  <div className="gr-pcell">{extras.phases[ph] && extras.phases[ph].b ? <ClassBadge tag={extras.phases[ph].b} size={24} /> : <span className="gr-dash">–</span>}</div>
-                </div>
-              ))}
-            </div>
-
-            {commentary && (
-              <div className="gr-commentary panel">
-                <h3>🎙️ Coach's Commentary</h3>
-                <p className="cm-lead">{commentary.opening}</p>
-                {commentary.turningPoints.length > 0 && (
-                  <>
-                    <h4 className="cm-h">Turning points</h4>
-                    {commentary.turningPoints.map((t, i) => (
-                      <p key={i} className="cm-tp"><b>{t.head}</b> — {t.text}</p>
-                    ))}
-                  </>
-                )}
-                {(commentary.motifs.length > 0 || commentary.structure.length > 0) && (
-                  <>
-                    <h4 className="cm-h">What decided it</h4>
-                    {commentary.motifs.map((m, i) => <p key={`m${i}`} className="cm-li">• {cap(m)}.</p>)}
-                    {commentary.structure.map((s, i) => <p key={`s${i}`} className="cm-li">• {s}</p>)}
-                  </>
-                )}
-                <h4 className="cm-h">Takeaways</h4>
-                {commentary.takeaways.map((t, i) => <p key={i} className="cm-li">✓ {t}</p>)}
-                <h4 className="cm-h">Study a model game</h4>
-                <p className="cm-li">📚 {commentary.masterGame}</p>
-                <p className="cm-foot">Every move and evaluation here is taken from Stockfish's analysis of your game — nothing invented.</p>
-              </div>
-            )}
-          </div>
-
-          <div className="layout-2col" style={{ marginTop: 16 }}>
-            <div className="board-col">
+        <div className="az-workspace">
+          <div className="az-board">
               <div className="board-with-eval">
                 {!prove && !engineHidden && (liveEvalW != null || cursorEval != null) && (
                   <EvalBar cp={liveEvalW != null ? liveEvalW : cursorEval} mate={liveLines[0] ? liveLines[0].mate : null} flipped={boardOrientation === 'black'} />
@@ -642,15 +561,102 @@ export default function Analyzer() {
                   <p className="small muted" style={{ margin: '8px 0 0', fontStyle: 'italic' }}>Grounded in the live engine line — no invented moves.</p>
                 </div>
               )}
-              {!engineHidden && (
-                <div style={{ marginTop: 10 }}>
-                  <CoachChat getContext={() => buildCoachContext({ fen, lines: liveLines, evalWhite: liveEvalW, moves: result.moves, cursor, playerColor: color })} />
-                </div>
-              )}
               <p className="small muted" style={{ textAlign: 'center', marginTop: 6 }}>← → move · B engine arrow · F flip · click the graph</p>
             </div>
 
-            <div className="side-col">
+            <div className="az-panel">
+              <div className="az-tabs">
+                {AZ_TABS.map(([id, label]) => (
+                  <button key={id} className={`az-tab ${sideTab === id ? 'active' : ''}`} onClick={() => setSideTab(id)}>
+                    {label}{id === 'mistakes' && result.mistakes.length ? ` ${result.mistakes.length}` : ''}
+                  </button>
+                ))}
+              </div>
+
+              {sideTab === 'report' && (
+                <div className="gr-wrap">
+                  {extras && extras.comment && (
+                    <div className="gr-coach">
+                      <div className="gr-coach-face">🧑‍🏫</div>
+                      <div className="gr-coach-bubble">{extras.comment}</div>
+                    </div>
+                  )}
+                  <div className="report-card gr-graphcard">
+                    <div className="rc-head">{result.engine}{opening ? ` · ${opening}` : ''}</div>
+                    <EvalGraph evals={S.evals} cursor={cursor} moves={result.moves} onSeek={(i) => { setCursor(i); setActiveMistake(null); }} />
+                    <div className="acc-rings">
+                      <AccuracyRing value={S.acc.w} label={headers.white} tone="w" />
+                      <AccuracyRing value={S.acc.b} label={headers.black} tone="b" />
+                    </div>
+                  </div>
+                  <div className="gr-panel">
+                    <div className="gr-row gr-players">
+                      <div className="gr-label" />
+                      {[['w', headers.white], ['b', headers.black]].map(([c, name]) => (
+                        <div className="gr-pcell" key={c}>
+                          <div className={`gr-avatar ${c}`}>{initial(name)}</div>
+                          <div className="gr-pname" title={name}>{name}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="gr-row">
+                      <div className="gr-label">Accuracy</div>
+                      <div className="gr-pcell"><span className={`gr-accbox ${(S.acc.w || 0) >= (S.acc.b || 0) ? 'hi' : 'lo'}`}>{fmt(S.acc.w)}</span></div>
+                      <div className="gr-pcell"><span className={`gr-accbox ${(S.acc.b || 0) > (S.acc.w || 0) ? 'hi' : 'lo'}`}>{fmt(S.acc.b)}</span></div>
+                    </div>
+                    <div className="gr-sep" />
+                    {LEGEND_TAGS.map((t) => (
+                      <div className="gr-row gr-classrow" key={t}>
+                        <div className="gr-label" style={{ color: `var(--c-${t === 'inaccuracy' ? 'inacc' : t})` }}>{TAG_META[t].name}</div>
+                        <div className="gr-cnt" style={{ color: `var(--c-${t === 'inaccuracy' ? 'inacc' : t})` }}>{S.counts.w[t] || 0}</div>
+                        <div className="gr-mid"><ClassBadge tag={t} size={26} title={TAG_META[t].name} /></div>
+                        <div className="gr-cnt" style={{ color: `var(--c-${t === 'inaccuracy' ? 'inacc' : t})` }}>{S.counts.b[t] || 0}</div>
+                      </div>
+                    ))}
+                    <div className="gr-sep" />
+                    <div className="gr-row">
+                      <div className="gr-label">Game Rating</div>
+                      <div className="gr-pcell"><span className="gr-accbox hi">{fmt(ratingFromAccuracy(S.acc.w))}</span></div>
+                      <div className="gr-pcell"><span className="gr-accbox lo">{fmt(ratingFromAccuracy(S.acc.b))}</span></div>
+                    </div>
+                    {extras && PHASES.map(([ph, lbl]) => (
+                      <div className="gr-row gr-phaserow" key={ph}>
+                        <div className="gr-label">{lbl}</div>
+                        <div className="gr-pcell">{extras.phases[ph] && extras.phases[ph].w ? <ClassBadge tag={extras.phases[ph].w} size={24} /> : <span className="gr-dash">–</span>}</div>
+                        <div className="gr-pcell">{extras.phases[ph] && extras.phases[ph].b ? <ClassBadge tag={extras.phases[ph].b} size={24} /> : <span className="gr-dash">–</span>}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {commentary && (
+                    <div className="gr-commentary panel">
+                      <h3>🎙️ Coach's Commentary</h3>
+                      <p className="cm-lead">{commentary.opening}</p>
+                      {commentary.turningPoints.length > 0 && (
+                        <>
+                          <h4 className="cm-h">Turning points</h4>
+                          {commentary.turningPoints.map((t, i) => (
+                            <p key={i} className="cm-tp"><b>{t.head}</b> — {t.text}</p>
+                          ))}
+                        </>
+                      )}
+                      {(commentary.motifs.length > 0 || commentary.structure.length > 0) && (
+                        <>
+                          <h4 className="cm-h">What decided it</h4>
+                          {commentary.motifs.map((m, i) => <p key={`m${i}`} className="cm-li">• {cap(m)}.</p>)}
+                          {commentary.structure.map((s, i) => <p key={`s${i}`} className="cm-li">• {s}</p>)}
+                        </>
+                      )}
+                      <h4 className="cm-h">Takeaways</h4>
+                      {commentary.takeaways.map((t, i) => <p key={i} className="cm-li">✓ {t}</p>)}
+                      <h4 className="cm-h">Study a model game</h4>
+                      <p className="cm-li">📚 {commentary.masterGame}</p>
+                      <p className="cm-foot">Every move and evaluation here is taken from Stockfish's analysis of your game — nothing invented.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {sideTab === 'engine' && (
               <div className="panel engine-panel">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                   <h3 style={{ margin: 0 }}>Engine <span className="muted" style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 500 }}>· Stockfish 17 {live.depth ? `· depth ${live.depth}` : '· …'}</span></h3>
@@ -680,7 +686,9 @@ export default function Analyzer() {
                   )}
                 </div>
               </div>
+              )}
 
+              {sideTab === 'mistakes' && (
               <div className="panel">
                 <h3>Learn from your mistakes — find the better move</h3>
                 {result.mistakes.length === 0 && <p className="small">No serious mistakes for your side — clean game. Raise the engine time for a harsher look.</p>}
@@ -740,7 +748,9 @@ export default function Analyzer() {
                   })}
                 </div>
               </div>
+              )}
 
+              {sideTab === 'moves' && (
               <div className="panel">
                 <h3>Moves</h3>
                 <div className="movelist scrolly" ref={movesRef}>
@@ -760,10 +770,14 @@ export default function Analyzer() {
                   })}
                 </div>
               </div>
+              )}
+
+              {sideTab === 'coach' && (
+                <CoachChat getContext={() => buildCoachContext({ fen, lines: liveLines, evalWhite: liveEvalW, moves: result.moves, cursor, playerColor: color })} />
+              )}
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }

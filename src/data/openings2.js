@@ -150,15 +150,16 @@ export const EXTRA_LINES = {
 import { MORE_LINES } from './openings3.js';
 import { V4_LINES, V4_OPENINGS } from './openings4.js';
 import { VIENNA, V5_LINES } from './openings5.js';
+import { V6_LINES } from './openings6.js';
 
 // merge helper (v15: the London is retired — the Vienna takes its slot)
 export function mergeOpenings(base, customLines = []) {
   const all = base.map((o) => ({
     ...o,
-    lines: [...o.lines, ...(EXTRA_LINES[o.id] || []), ...(MORE_LINES[o.id] || []), ...(V4_LINES[o.id] || []), ...(V5_LINES[o.id] || [])],
+    lines: [...o.lines, ...(EXTRA_LINES[o.id] || []), ...(MORE_LINES[o.id] || []), ...(V4_LINES[o.id] || []), ...(V5_LINES[o.id] || []), ...(V6_LINES[o.id] || [])],
   }));
-  all.splice(2, 0, VIENNA); // after Alien, before Caro
-  all.push(...V4_OPENINGS.map((o) => ({ ...o, lines: [...o.lines, ...(V5_LINES[o.id] || [])] }))); // Slav — the answer to 1.d4
+  all.splice(2, 0, { ...VIENNA, lines: [...VIENNA.lines, ...(V6_LINES.vienna || [])] }); // after Alien, before Caro
+  all.push(...V4_OPENINGS.map((o) => ({ ...o, lines: [...o.lines, ...(V5_LINES[o.id] || []), ...(V6_LINES[o.id] || [])] }))); // Slav — the answer to 1.d4
   if (customLines.length) {
     all.push({
       id: 'custom',

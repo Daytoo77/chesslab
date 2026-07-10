@@ -1,4 +1,8 @@
-# ChessLab — Training Suite (v17)
+# ChessLab — Training Suite (v18)
+
+## v18 — organised opening study + play on your phone
+- **Opening Explorer reorganised** the same way as the Analyzer: the board is pinned on the left with a **tabbed panel** on the right — **Lines · Moves · Idea · Coach** while studying (Quiz / Test tabs replace them in those modes). The AI coach is now one click away *while the board stays in view* — no scrolling required to ask it a question mid-line.
+- **Play on your phone**: ChessLab is now hosted at **https://daytoo77.github.io/chesslab/** — open it in any mobile browser and tap "Add to Home Screen" for an installable, offline-capable app icon. This hosted build ships with no API key baked in (unlike the local `ChessLab.html`); paste your own free Gemini key into Settings once per device to enable the AI coach there.
 
 ## v17 — organised analysis workspace + a bigger repertoire
 - **Game Analyzer reorganised**: the board is now pinned on the left (sticky) with a **tabbed panel** on the right — **Report · Engine · Mistakes · Moves · Coach**. No more scrolling past a tall report to reach the board and controls; you pick the panel you need and the board never moves. Stacks cleanly on mobile.

@@ -25,6 +25,14 @@ export default function Openings() {
   const [mode, setMode] = useState('study'); // study | quiz | play | import
   const [ply, setPly] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  // right-hand panel tab — board stays pinned so the coach is always one click
+  // away without scrolling past the rest of the study material
+  const [panelTab, setPanelTab] = useState('idea');
+  useEffect(() => {
+    if (mode === 'quiz') setPanelTab('quiz');
+    else if (mode === 'play') setPanelTab('play');
+    else if (mode === 'study') setPanelTab((t) => (t === 'quiz' || t === 'play' ? 'idea' : t));
+  }, [mode]);
 
   // quiz
   const quizGame = useRef(new Chess());
@@ -253,6 +261,11 @@ export default function Openings() {
   const activeGame = mode === 'quiz' ? quizGame.current : mode === 'play' ? playGame.current : null;
   const getMoves = activeGame ? (sq) => { try { return activeGame.moves({ square: sq, verbose: true }); } catch { return []; } } : null;
   const dueCount = ALL.reduce((acc, o) => acc + o.lines.filter((l) => lineDue(srs, l.id)).length, 0);
+  const OP_TABS = mode === 'quiz'
+    ? [['lines', '📖 Lines'], ['quiz', '⚔ Quiz']]
+    : mode === 'play'
+    ? [['lines', '📖 Lines'], ['play', '♟ Test']]
+    : [['lines', '📖 Lines'], ['moves', '☰ Moves'], ['idea', '💡 Idea'], ['coach', '🧑‍🏫 Coach']];
 
   return (
     <div>
@@ -312,8 +325,8 @@ export default function Openings() {
       ) : !line ? (
         <div className="panel"><p className="small muted">No lines here yet — import a PGN.</p></div>
       ) : (
-        <div className="layout-2col">
-          <div className="board-col">
+        <div className="az-workspace">
+          <div className="az-board">
             <Board fen={fen} orientation={orientation}
               onDrop={mode === 'quiz' ? onQuizDrop : mode === 'play' ? onPlayDrop : null}
               lastMove={mode === 'study' ? lastStudyMove : mode === 'quiz' ? quizLast : playLast}
@@ -356,74 +369,86 @@ export default function Openings() {
             <p className="small muted" style={{ textAlign: 'center', marginTop: 6 }}>← → step through · F flip · right-click drag to draw arrows (saved per position)</p>
           </div>
 
-          <div className="side-col">
-            <div className="panel">
-              <h3>{opening.name} — lines</h3>
-              <div className="card-list">
-                {opening.lines.map((l) => (
-                  <button key={l.id} className={`select-card ${l.id === lineId ? 'active' : ''}`} onClick={() => pickLine(l.id)}>
-                    <div className="t">
-                      {l.name} {linesStudied[l.id] ? '✓' : ''}
-                    </div>
-                    <div className="d">
-                      <span className={`chip ${lineDue(srs, l.id) ? 'red' : 'green'}`} style={{ marginRight: 6 }}>{srsLabel(srs, l.id)}</span>
-                      {quizBest[l.id] != null && <span className="chip green">quiz {quizBest[l.id]}%</span>}
-                    </div>
-                  </button>
-                ))}
-              </div>
+          <div className="az-panel">
+            <div className="az-tabs">
+              {OP_TABS.map(([id, label]) => (
+                <button key={id} className={`az-tab ${panelTab === id ? 'active' : ''}`} onClick={() => setPanelTab(id)}>{label}</button>
+              ))}
             </div>
 
-            {mode === 'study' && (
-              <>
-                <div className="panel">
-                  <h3>Moves</h3>
-                  <div className="movelist">
-                    {line.moves.map((m, i) => (
-                      <React.Fragment key={i}>
-                        {i % 2 === 0 && <span className="mvnum">{i / 2 + 1}.</span>}
-                        <button className={`mv ${ply === i + 1 ? 'current' : ''}`} onClick={() => setPly(i + 1)}>
-                          {m.san}{m.why ? '*' : ''}
-                        </button>
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </div>
-                <div className="panel">
-                  <h3>The idea</h3>
-                  {curMove ? (
-                    curMove.why
-                      ? <div className="banner coach big"><b style={{ color: 'var(--gold-soft)' }}>{Math.floor((ply - 1) / 2) + 1}{(ply - 1) % 2 === 0 ? '.' : '...'} {curMove.san}</b> — {curMove.why}</div>
-                      : <p className="small muted">A natural developing move — step forward for the next key idea.</p>
-                  ) : (
-                    <p className="small" style={{ lineHeight: 1.65 }}>{opening.summary}</p>
-                  )}
-                  {ply >= line.moves.length && line.moves.length > 0 && (
-                    <div className="banner gold big" style={{ marginTop: 10 }}>
-                      Line complete. Now prove you understand the position, not just the moves:
-                      <div className="btn-row">
-                        <button className="btn primary" onClick={() => startPlay(studyGame.fen())}>▶ Play vs Coach</button>
-                        <button className="btn" onClick={() => requestPlay(studyGame.fen(), userColor, `${opening.name} — ${line.name}`)}>🤖 Play vs a Bot from here</button>
+            {panelTab === 'lines' && (
+              <div className="panel">
+                <h3>{opening.name} — lines</h3>
+                <div className="card-list">
+                  {opening.lines.map((l) => (
+                    <button key={l.id} className={`select-card ${l.id === lineId ? 'active' : ''}`} onClick={() => pickLine(l.id)}>
+                      <div className="t">
+                        {l.name} {linesStudied[l.id] ? '✓' : ''}
                       </div>
-                    </div>
-                  )}
+                      <div className="d">
+                        <span className={`chip ${lineDue(srs, l.id) ? 'red' : 'green'}`} style={{ marginRight: 6 }}>{srsLabel(srs, l.id)}</span>
+                        {quizBest[l.id] != null && <span className="chip green">quiz {quizBest[l.id]}%</span>}
+                      </div>
+                    </button>
+                  ))}
                 </div>
-                <CoachChat
-                  getContext={() => buildOpeningContext({ fen: studyGame.fen(), openingName: opening.name, lineName: line.name, summary: opening.summary, moves: line.moves, ply, userColor })}
-                  badge="Gemini · knows this opening"
-                  intro="Stepping through the line? Ask the coach to explain the position you're in — the plans, the ideas, why each move is played. It reads the repertoire's own notes."
-                  keyBlurb="Get a Gemini-powered coach to explain every position in this opening — the plans, the threats, the ideas behind each move."
-                  placeholder="Ask about this position… e.g. why do we play this move?"
-                  suggestions={[
-                    ply === 0 ? "What's the big idea of this opening?" : 'Explain the position we\'re in right now.',
-                    'What are both sides trying to do here?',
-                    ply < line.moves.length ? 'Why is the next move played?' : 'What are my middlegame plans from here?',
-                  ]}
-                />
-              </>
+              </div>
             )}
 
-            {mode === 'quiz' && (
+            {panelTab === 'moves' && mode === 'study' && (
+              <div className="panel">
+                <h3>Moves</h3>
+                <div className="movelist">
+                  {line.moves.map((m, i) => (
+                    <React.Fragment key={i}>
+                      {i % 2 === 0 && <span className="mvnum">{i / 2 + 1}.</span>}
+                      <button className={`mv ${ply === i + 1 ? 'current' : ''}`} onClick={() => setPly(i + 1)}>
+                        {m.san}{m.why ? '*' : ''}
+                      </button>
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {panelTab === 'idea' && mode === 'study' && (
+              <div className="panel">
+                <h3>The idea</h3>
+                {curMove ? (
+                  curMove.why
+                    ? <div className="banner coach big"><b style={{ color: 'var(--gold-soft)' }}>{Math.floor((ply - 1) / 2) + 1}{(ply - 1) % 2 === 0 ? '.' : '...'} {curMove.san}</b> — {curMove.why}</div>
+                    : <p className="small muted">A natural developing move — step forward for the next key idea.</p>
+                ) : (
+                  <p className="small" style={{ lineHeight: 1.65 }}>{opening.summary}</p>
+                )}
+                {ply >= line.moves.length && line.moves.length > 0 && (
+                  <div className="banner gold big" style={{ marginTop: 10 }}>
+                    Line complete. Now prove you understand the position, not just the moves:
+                    <div className="btn-row">
+                      <button className="btn primary" onClick={() => startPlay(studyGame.fen())}>▶ Play vs Coach</button>
+                      <button className="btn" onClick={() => requestPlay(studyGame.fen(), userColor, `${opening.name} — ${line.name}`)}>🤖 Play vs a Bot from here</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {panelTab === 'coach' && mode === 'study' && (
+              <CoachChat
+                getContext={() => buildOpeningContext({ fen: studyGame.fen(), openingName: opening.name, lineName: line.name, summary: opening.summary, moves: line.moves, ply, userColor })}
+                badge="Gemini · knows this opening"
+                intro="Stepping through the line? Ask the coach to explain the position you're in — the plans, the ideas, why each move is played. It reads the repertoire's own notes."
+                keyBlurb="Get a Gemini-powered coach to explain every position in this opening — the plans, the threats, the ideas behind each move."
+                placeholder="Ask about this position… e.g. why do we play this move?"
+                suggestions={[
+                  ply === 0 ? "What's the big idea of this opening?" : 'Explain the position we\'re in right now.',
+                  'What are both sides trying to do here?',
+                  ply < line.moves.length ? 'Why is the next move played?' : 'What are my middlegame plans from here?',
+                ]}
+              />
+            )}
+
+            {panelTab === 'quiz' && mode === 'quiz' && (
               <div className="panel">
                 <h3>Quiz — {userColor === 'w' ? 'White' : 'Black'} repertoire</h3>
                 {quizWrong && <div className="banner err big">✗ Not the repertoire move — try again.</div>}
@@ -437,7 +462,7 @@ export default function Openings() {
               </div>
             )}
 
-            {mode === 'play' && (
+            {panelTab === 'play' && mode === 'play' && (
               <div className="panel">
                 <h3>Middlegame test</h3>
                 <p className="small" style={{ lineHeight: 1.6 }}>Theory is over — now play the plans: {opening.id === 'vienna' ? 'the f-file, the e5 space, and the kingside storm.' : opening.id === 'caro' ? 'the ...c5 break and the good bishop.' : opening.id === 'alien' ? 'pile every piece on the naked king.' : 'pressure on f7 and the e-file.'} The coach plays at a club level — beat it with ideas, not tricks.</p>

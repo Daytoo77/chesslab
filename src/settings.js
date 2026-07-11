@@ -9,6 +9,13 @@ export const BOARD_THEMES = [
   { id: 'ocean', name: 'Ocean', light: '#cfdbe6', dark: '#5b7d99' },
   { id: 'glacier', name: 'Glacier', light: '#e8edf9', dark: '#7286a3' },
   { id: 'rose', name: 'Rosewood', light: '#e8d0c2', dark: '#9e5e51' },
+  // v20 additions
+  { id: 'amethyst', name: 'Amethyst', light: '#e2d7f2', dark: '#7b5ea7' },
+  { id: 'forest', name: 'Deep Forest', light: '#d8e2c8', dark: '#4e6b4a' },
+  { id: 'slate', name: 'Slate', light: '#d4d8de', dark: '#5f6672' },
+  { id: 'coral', name: 'Coral', light: '#f5ddd0', dark: '#c2705e' },
+  { id: 'sand', name: 'Desert Sand', light: '#efe3c8', dark: '#c2a25c' },
+  { id: 'ice', name: 'Arctic Ice', light: '#eef4fa', dark: '#8fb0cc' },
 ];
 export const themeById = (id) => BOARD_THEMES.find((t) => t.id === id) || BOARD_THEMES[0];
 
@@ -25,6 +32,9 @@ export const useSettings = create(
       evalBarPlay: false,    // live eval bar while playing vs a bot
       hifiSound: true,       // richer sound set
       geminiKey: '',         // AI coach key — lives ONLY in this browser's localStorage
+      boardHl: 'normal',     // board highlight intensity: subtle | normal | bold
+      uiScale: 100,          // root font-size %, for larger text / small screens
+      cbSafe: false,         // colorblind-safe move-classification palette (Okabe-Ito)
       set: (patch) => set(patch),
     }),
     { name: 'chesslab_settings_v1' }

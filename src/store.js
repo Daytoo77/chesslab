@@ -43,6 +43,8 @@ const initial = {
   lastAnalyzeDay: null,  // analyzed a game today — daily habit
   // cross-game weakness profile — recurring mistake motifs across analyzed games
   weaknessProfile: { lifetime: {}, recent: [] }, // recent: [{ date, counts }]
+  // guided training session — persisted so it survives reloads (resume for free)
+  session: null, // { startedAt, minutes, segments: [{ cat, page, icon, label, minutes }] }
 };
 
 export const STUDY_CATS = [
@@ -148,6 +150,19 @@ export const useStats = create(
           return { studyLog: { ...s.studyLog, [today]: { ...d, [cat]: Math.max(0, (d[cat] || 0) + mins) } } };
         }),
       setWeeklyGoal: (h) => set({ weeklyGoalH: Math.max(1, h) }),
+      startSession: (minutes, segments) => set({ session: { startedAt: Date.now(), minutes, segments } }),
+      // end (or finish) a session, crediting the actually-spent minutes per category
+      endSession: (credits) =>
+        set((s) => {
+          if (!s.session) return {};
+          const today = dayKey();
+          const d = { ...(s.studyLog[today] || emptyDay()) };
+          for (const [cat, mins] of Object.entries(credits || {})) {
+            const m = Math.round(mins);
+            if (m > 0) d[cat] = Math.max(0, (d[cat] || 0) + m);
+          }
+          return { session: null, studyLog: { ...s.studyLog, [today]: d } };
+        }),
       setDailyTacticGoal: (n) => set({ dailyTacticGoal: Math.max(1, n) }),
       recordSlowGame: () => set({ lastSlowGameDay: dayKey() }),
 

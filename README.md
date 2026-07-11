@@ -1,4 +1,13 @@
-# ChessLab — Training Suite (v19)
+# ChessLab — Training Suite (v20)
+
+## v20 — session mode, backups, visual controls, mobile polish (phases 3, 5, 6, 7)
+- **⏱ Session mode** (Training Plan): start a guided 15/30/45-minute block — tactics → game review → openings → endgames, pro-rated. Live progress bar, "you are here" segment with one-click jump, and the time is credited to your weekly study plan automatically when you finish (or end early — partial credit). Survives reloads: the session is persisted, so closing the tab doesn't lose it.
+- **Progress backup** (Settings): **⬇ Export** downloads all your stats/settings as one JSON; **⬆ Import** restores it (validated before anything is touched — corrupt or foreign files are rejected without changes). Your Gemini key is *always stripped from exports* and the importing device's own key survives, so backup files are safe to move between devices.
+- **Visual controls** (Settings): 6 new board themes (Amethyst, Deep Forest, Slate, Coral, Desert Sand, Arctic Ice — 12 total), **board highlight intensity** (subtle/normal/bold), **text size** (compact/normal/large), and a **colorblind-safe classification palette** (Okabe-Ito) that survives specificity wars with the default tokens.
+- **Mobile pass**: 44px-class touch targets in the bottom nav, buttons, workspace tabs and move lists on small screens.
+- Test suite grew to **32 tests** (session planning/progress math, backup round-trip + rejection paths) — all green, enforced by CI.
+
+
 
 ## v19 — quality gates + the personal-coach loop (roadmap phases 1–2)
 - **Tests + CI**: 22 zero-dependency unit tests (`npm test`, plain `node --test`) covering the motif classifier, win% math, coach context builders, and the new queue/trends logic; a GitHub Actions workflow now builds and tests every push/PR.

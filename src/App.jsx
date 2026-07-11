@@ -11,6 +11,7 @@ import Dashboard from './sections/Dashboard.jsx';
 import { isMuted, setMuted } from './sounds.js';
 import { useStats } from './store.js';
 import { useSettings, useUi, BOARD_THEMES } from './settings.js';
+import { exportBackup, importBackup } from './backup.js';
 
 const SECTIONS = [
   { id: 'play', label: 'Play vs Bots', icon: '♞', comp: Play, group: 'Play' },
@@ -93,6 +94,26 @@ function Settings({ onClose }) {
         </select>
       </label>
       <label className="settings-row">
+        <span>Board highlights</span>
+        <select value={settings.boardHl} onChange={(e) => settings.set({ boardHl: e.target.value })}>
+          <option value="subtle">subtle</option>
+          <option value="normal">normal</option>
+          <option value="bold">bold</option>
+        </select>
+      </label>
+      <label className="settings-row">
+        <span>Text size</span>
+        <select value={settings.uiScale} onChange={(e) => settings.set({ uiScale: +e.target.value })}>
+          <option value={90}>compact</option>
+          <option value={100}>normal</option>
+          <option value={112}>large</option>
+        </select>
+      </label>
+      <label className="settings-row" title="Okabe-Ito palette for move classifications — distinguishable with all common color-vision types">
+        <span>Colorblind-safe colors</span>
+        <input type="checkbox" checked={settings.cbSafe} onChange={(e) => settings.set({ cbSafe: e.target.checked })} />
+      </label>
+      <label className="settings-row">
         <span>Sounds</span>
         <input type="checkbox" checked={!muted} onChange={(e) => { setMuted(!e.target.checked); setMutedState(!e.target.checked); }} />
       </label>
@@ -105,6 +126,38 @@ function Settings({ onClose }) {
         <input type="password" className="key-input" placeholder="stored only on this device"
           value={settings.geminiKey} onChange={(e) => settings.set({ geminiKey: e.target.value })} />
       </label>
+      <div className="settings-row" style={{ display: 'block' }}>
+        <span>Progress backup <span style={{ color: 'var(--sub)' }}>· all stats & settings</span></span>
+        <div className="btn-row" style={{ marginTop: 6 }}>
+          <button className="btn btn-mini" onClick={() => {
+            const blob = new Blob([JSON.stringify(exportBackup(localStorage), null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `chesslab-backup-${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+          }}>⬇ Export</button>
+          <button className="btn btn-mini" onClick={() => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json,.json';
+            input.onchange = () => {
+              const f = input.files && input.files[0];
+              if (!f) return;
+              const reader = new FileReader();
+              reader.onload = () => {
+                let res;
+                try { res = importBackup(JSON.parse(reader.result), localStorage); }
+                catch { res = { ok: false, error: 'Could not read that file as JSON.' }; }
+                if (res.ok) { alert('Backup restored — reloading.'); location.reload(); }
+                else alert(res.error);
+              };
+              reader.readAsText(f);
+            };
+            input.click();
+          }}>⬆ Import</button>
+        </div>
+      </div>
       <button className="btn" style={{ width: '100%', marginTop: 8 }} onClick={onClose}>Done</button>
     </motion.div>
   );
@@ -114,6 +167,8 @@ export default function App() {
   const page = useUi((u) => u.page);
   const setPage = useUi((u) => u.setPage);
   const appTheme = useSettings((s) => s.appTheme);
+  const uiScale = useSettings((s) => s.uiScale);
+  const cbSafe = useSettings((s) => s.cbSafe);
   const [showSettings, setShowSettings] = useState(false);
   // warm the play engine right after first paint — the first bot/coach move
   // must never wait for a wasm boot
@@ -122,6 +177,8 @@ export default function App() {
     return () => clearTimeout(t);
   }, []);
   useEffect(() => { document.documentElement.dataset.theme = appTheme; }, [appTheme]);
+  useEffect(() => { document.documentElement.style.fontSize = `${uiScale || 100}%`; }, [uiScale]);
+  useEffect(() => { document.documentElement.dataset.cb = cbSafe ? 'true' : 'false'; }, [cbSafe]);
   const Current = (SECTIONS.find((s) => s.id === page) || SECTIONS[0]).comp;
   return (
     <div className="app" onClick={() => showSettings && setShowSettings(false)}>

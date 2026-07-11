@@ -3,10 +3,10 @@
 // "How to get better at chess" guide: the weekly 50/20/15/10/5 study split,
 // the daily tactics habit, the in-game thinking checklist, middlegame planning,
 // endgame essentials, opening principles, and "analyse your own games first".
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useStats, dayKey, weekKeys, weekStudy, weaknessTop, weaknessRecent, lineDue, STUDY_CATS } from '../store.js';
 import { MOTIF_META } from '../motifs.js';
-import { buildDailyQueue } from '../queue.js';
+import { buildDailyQueue, buildSession, sessionProgress } from '../queue.js';
 import { OPENINGS } from '../data/openings.js';
 import { mergeOpenings } from '../data/openings2.js';
 import { useUi } from '../settings.js';
@@ -93,6 +93,15 @@ export default function Train() {
   });
   const goQueue = (t) => (t.motif ? requestTactics({ motif: t.motif }) : setPage(t.page));
 
+  // ----- guided session: tick every 20s while one is running -----
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!s.session) return;
+    const t = setInterval(() => setNow(Date.now()), 20000);
+    return () => clearInterval(t);
+  }, [s.session]);
+  const prog = s.session ? sessionProgress(s.session, now) : null;
+
   const habits = [
     { done: tacticPct >= 100, label: `Solve ${s.dailyTacticGoal} tactics`, sub: `${solvedToday} / ${s.dailyTacticGoal} today`, page: 'tactics', pct: tacticPct },
     { done: slowGameDone, label: 'Play one slow game', sub: slowGameDone ? 'done today ✓' : '15|10 or longer', page: 'play', pct: slowGameDone ? 100 : 0 },
@@ -107,6 +116,53 @@ export default function Train() {
         A structured program beats random play. This turns the classic improvement routine into something you can
         actually track — log your week, keep the daily habit, and carry the thinking checklist into every game.
       </p>
+
+      {/* ---------- Guided session ---------- */}
+      <div className="panel" style={{ marginBottom: 16 }}>
+        {!s.session ? (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+            <div>
+              <h3 style={{ margin: 0 }}>⏱ Training session</h3>
+              <p className="small muted" style={{ margin: '4px 0 0' }}>A guided block: tactics → game review → openings → endgames. Time is logged to your weekly plan automatically.</p>
+            </div>
+            <div className="btn-row" style={{ marginTop: 0 }}>
+              {[15, 30, 45].map((m) => (
+                <button key={m} className={`btn ${m === 30 ? 'primary' : ''}`} onClick={() => s.startSession(m, buildSession(m))}>{m} min</button>
+              ))}
+            </div>
+          </div>
+        ) : prog && prog.done ? (
+          <div className="banner ok big">
+            🏁 <b>Session complete — {prog.totalMin} minutes.</b> Every segment is being logged to your weekly plan.
+            <div className="btn-row">
+              <button className="btn primary" onClick={() => s.endSession(prog.perCat)}>Log it ✓</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+              <h3 style={{ margin: 0 }}>⏱ Session running <span className="chip teal" style={{ marginLeft: 6 }}>{Math.round(prog.elapsedMin)} / {prog.totalMin} min</span></h3>
+              <button className="btn btn-mini" onClick={() => s.endSession(prog.perCat)}>■ End early (logs {Math.round(prog.elapsedMin)} min)</button>
+            </div>
+            <div className="progressbar" style={{ marginTop: 10 }}><div style={{ width: `${prog.pct}%` }} /></div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
+              {s.session.segments.map((seg, i) => {
+                const state = prog.current === i ? 'now' : i < (prog.current ?? s.session.segments.length) ? 'done' : 'next';
+                return (
+                  <div key={seg.cat} className="queue-item" style={{ opacity: state === 'next' ? 0.55 : 1, borderColor: state === 'now' ? 'var(--gold)' : undefined }}>
+                    <span className="queue-icon">{state === 'done' ? '✓' : seg.icon}</span>
+                    <span style={{ flex: 1 }}>
+                      <b>{seg.label}</b>
+                      <span className="small muted"> — {seg.minutes} min{state === 'now' ? ` · ${Math.max(1, Math.round(seg.minutes - prog.segElapsed))} left` : ''}</span>
+                    </span>
+                    {state === 'now' && <button className="btn btn-mini primary" onClick={() => setPage(seg.page)}>Go →</button>}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* ---------- Do this now — the personalized queue ---------- */}
       <div className="panel" style={{ marginBottom: 16 }}>

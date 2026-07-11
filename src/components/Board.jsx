@@ -51,8 +51,9 @@ function kingInCheckSquare(fen) {
 // onDrop(from, to, promotion?) -> bool. `premove` = {from,to} shown in blue.
 export default function Board({ fen, onDrop, orientation = 'white', lastMove, arrows = [], draggable = true, getMoves, onArrowsChange, premove, onPremoveCancel }) {
   const blindfold = useStats((s) => s.blindfold);
-  const { boardTheme, showLegal, coords, animMs, autoQueen, pieceSet } = useSettings();
+  const { boardTheme, showLegal, coords, animMs, autoQueen, pieceSet, boardHl } = useSettings();
   const theme = themeById(boardTheme);
+  const hlF = boardHl === 'subtle' ? 0.6 : boardHl === 'bold' ? 1.35 : 1; // highlight intensity
   const hiddenPieces = useMemo(() => {
     const o = {};
     for (const k of PIECE_KEYS) o[k] = () => <div style={{ width: '100%', height: '100%' }} />;
@@ -70,14 +71,15 @@ export default function Board({ fen, onDrop, orientation = 'white', lastMove, ar
 
   const squareStyles = {};
   if (lastMove) {
-    // elegant glow — soft inner bloom on the origin, brighter ring + bloom on the destination
+    // elegant glow — soft inner bloom on the origin, brighter ring + bloom on
+    // the destination; alpha scales with the highlight-intensity setting
     squareStyles[lastMove.from] = {
-      backgroundColor: 'rgba(176, 125, 255,0.32)',
-      boxShadow: 'inset 0 0 14px rgba(212, 184, 255,0.28)',
+      backgroundColor: `rgba(176, 125, 255,${Math.min(1, 0.32 * hlF)})`,
+      boxShadow: `inset 0 0 14px rgba(212, 184, 255,${Math.min(1, 0.28 * hlF)})`,
     };
     squareStyles[lastMove.to] = {
-      backgroundColor: 'rgba(176, 125, 255,0.45)',
-      boxShadow: 'inset 0 0 0 2px rgba(212, 184, 255,0.55), inset 0 0 20px rgba(212, 184, 255,0.35)',
+      backgroundColor: `rgba(176, 125, 255,${Math.min(1, 0.45 * hlF)})`,
+      boxShadow: `inset 0 0 0 2px rgba(212, 184, 255,${Math.min(1, 0.55 * hlF)}), inset 0 0 20px rgba(212, 184, 255,${Math.min(1, 0.35 * hlF)})`,
     };
   }
   if (premove) {

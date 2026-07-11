@@ -60,6 +60,49 @@ export function buildDailyQueue({
   return q.sort((a, b) => b.score - a.score);
 }
 
+// ---- Session mode: a guided block of training, split across the work that
+// matters. Pure planning/progress math; the store holds the timestamps, so a
+// session survives reloads for free. ----
+const SESSION_SPLIT = [
+  { cat: 'tactics',  page: 'tactics',  icon: '⚔', label: 'Tactics',          share: 0.34 },
+  { cat: 'analysis', page: 'analyzer', icon: '⚡', label: 'Game review',      share: 0.33 },
+  { cat: 'openings', page: 'openings', icon: '♜', label: 'Opening lines',    share: 0.17 },
+  { cat: 'endgames', page: 'endgames', icon: '♚', label: 'Endgame drills',   share: 0.16 },
+];
+
+export function buildSession(totalMinutes) {
+  const segs = SESSION_SPLIT.map((s) => ({ ...s, minutes: Math.max(1, Math.round(totalMinutes * s.share)) }));
+  // rounding drift lands on the first (largest) segment so the sum is exact
+  const drift = totalMinutes - segs.reduce((a, s) => a + s.minutes, 0);
+  segs[0].minutes = Math.max(1, segs[0].minutes + drift);
+  return segs;
+}
+
+export function sessionProgress(session, now = Date.now()) {
+  if (!session) return null;
+  const totalMin = session.segments.reduce((a, s) => a + s.minutes, 0);
+  const elapsedMin = Math.max(0, Math.min(totalMin, (now - session.startedAt) / 60000));
+  let acc = 0, current = null, segElapsed = 0;
+  const perCat = {};
+  for (let i = 0; i < session.segments.length; i++) {
+    const seg = session.segments[i];
+    const inSeg = Math.max(0, Math.min(seg.minutes, elapsedMin - acc));
+    perCat[seg.cat] = (perCat[seg.cat] || 0) + inSeg;
+    if (current == null && elapsedMin < acc + seg.minutes) { current = i; segElapsed = inSeg; }
+    acc += seg.minutes;
+  }
+  const done = elapsedMin >= totalMin;
+  return {
+    totalMin,
+    elapsedMin,
+    pct: Math.round((elapsedMin / totalMin) * 100),
+    current: done ? null : current,
+    segElapsed,
+    perCat,
+    done,
+  };
+}
+
 // Per-motif trend: compare the newer half of the recent window against the
 // older half. Fewer occurrences recently = 'down' (improving).
 export function motifTrends(profile) {

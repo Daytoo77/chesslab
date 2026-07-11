@@ -521,6 +521,20 @@ textarea.pgn-input:focus { outline: none; border-color: rgba(176, 125, 255, 0.55
   font-size: 11px; font-weight: 600; color: var(--muted);
 }
 
+/* ---------- v20: colorblind-safe classification palette (Okabe-Ito) ----------
+   Distinguishable under protanopia/deuteranopia/tritanopia. Applied via the
+   settings toggle (html[data-cb="true"]). */
+html[data-cb="true"] {
+  /* html + attribute outranks the later :root token block */
+  --c-brilliant: #56b4e9;
+  --c-great:     #0072b2;
+  --c-best:      #009e73;
+  --c-inacc:     #f0e442;
+  --c-miss:      #cc79a7;
+  --c-mistake:   #e69f00;
+  --c-blunder:   #d55e00;
+}
+
 /* ---------- v19: "Do this now" queue ---------- */
 .queue-item {
   display: flex; align-items: center; gap: 11px;
@@ -618,6 +632,14 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
   }
   .brand { display: none; }
   .nav-group { display: none; }
+  /* v20 mobile pass: comfortable 44px-class touch targets */
+  .nav button { padding: 7px 8px 6px; min-width: 46px; }
+  .nav .icon { font-size: 22px; }
+  .btn { min-height: 40px; }
+  .btn-mini, .btn.btn-mini { min-height: 34px; }
+  .az-tab { padding: 11px 2px; }
+  .movelist .mv { padding: 4px 9px; }
+  .queue-item { padding: 11px 12px; }
   .nav { flex: 1; flex-direction: row; justify-content: space-around; gap: 0; }
   .nav button { flex-direction: column; gap: 3px; padding: 5px 6px; font-size: 9px; border: none; background: none !important; border-color: transparent !important; }
   .nav button.active { background: none; color: var(--gold); box-shadow: none; }

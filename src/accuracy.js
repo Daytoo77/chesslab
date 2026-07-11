@@ -1,10 +1,37 @@
 // Accuracy & rating estimation — win-percentage model (same family of
 // formulas Lichess publishes; chess.com's CAPS works on the same principle).
+import { PARITY_CONFIG } from './parityConfig.js';
 
 // centipawns (side to move POV) -> win probability 0..100
 export function winPct(cp) {
   const c = Math.max(-1000, Math.min(1000, cp));
   return 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * c)) - 1);
+}
+
+const MAT = { p: 100, n: 320, b: 330, r: 500, q: 900 };
+function materialFromFen(fen) {
+  const board = (fen || '').split(' ')[0] || '';
+  let m = 0;
+  for (const ch of board) {
+    const t = ch.toLowerCase();
+    if (MAT[t]) m += MAT[t];
+  }
+  return m;
+}
+
+// Calibrated win%: prefers native WDL when available, otherwise logistic cp map
+// with phase-aware slope and less aggressive clipping for decisive positions.
+export function calibratedWinPct({ cp = 0, wdl = null, fen = null } = {}) {
+  if (wdl && Number.isFinite(wdl.w) && Number.isFinite(wdl.d) && Number.isFinite(wdl.l)) {
+    const sum = Math.max(1, wdl.w + wdl.d + wdl.l);
+    return ((wdl.w + wdl.d * 0.5) / sum) * 100;
+  }
+  const clamp = PARITY_CONFIG.analysis.evalClampCp;
+  const c = Math.max(-clamp, Math.min(clamp, cp || 0));
+  const mat = materialFromFen(fen);
+  const phase = Math.max(0, Math.min(1, (mat - 1800) / 5200));
+  const k = 0.00315 + phase * 0.0008;
+  return 50 + 50 * (2 / (1 + Math.exp(-k * c)) - 1);
 }
 
 // accuracy of a single move from win% before/after (mover's POV)
@@ -104,12 +131,16 @@ export function classifyMove(ctx) {
 
   // base bin (official thresholds)
   let base;
-  if (isBest || winLoss < 0.5) base = 'best';
-  else if (winLoss < 2) base = 'excellent';
-  else if (winLoss < 5) base = 'good';
-  else if (winLoss < 10) base = 'inaccuracy';
-  else if (winLoss < 20) base = 'mistake';
+  const CFG = PARITY_CONFIG.classification;
+  if (isBest || winLoss < CFG.bestEpsilon) base = 'best';
+  else if (winLoss < CFG.excellentMax) base = 'excellent';
+  else if (winLoss < CFG.goodMax) base = 'good';
+  else if (winLoss < CFG.inaccuracyMax) base = 'inaccuracy';
+  else if (winLoss < CFG.mistakeMax) base = 'mistake';
   else base = 'blunder';
+
+  const ambiguous = secondWin != null && (winBefore - secondWin) <= CFG.ambiguitySecondGapMax && winLoss <= CFG.ambiguityWinLossMax;
+  if (ambiguous && (base === 'inaccuracy' || base === 'mistake')) base = 'good';
 
   // Brilliant (chess.com: "best OR near-best move, requires a material
   // sacrifice, does not result in a losing position, not awarded if already

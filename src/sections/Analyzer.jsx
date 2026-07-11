@@ -20,6 +20,7 @@ import { openingName } from '../data/openingNames.js';
 import { fig } from '../figurine.js';
 import { fetchChessCom, fetchLichess } from '../gameImport.js';
 import { sounds, playClassified } from '../sounds.js';
+import { PARITY_CONFIG } from '../parityConfig.js';
 
 const SAMPLE_PGN = `[Event "Sample game"]
 [White "Selim"]
@@ -44,7 +45,7 @@ const TAG_META = {
   blunder:   { label: '??', cls: 'tag-blunder',   name: 'Blunder' },
 };
 const LEGEND_TAGS = ['brilliant', 'great', 'best', 'excellent', 'good', 'book', 'inaccuracy', 'miss', 'mistake', 'blunder'];
-const QUALITY = { fast: 300, strong: 600, deep: 1200 };
+const QUALITY = PARITY_CONFIG.analysis.qualityMovetime;
 // right-hand workspace tabs — board stays pinned, you pick the panel you need
 const AZ_TABS = [
   ['report', '📊 Report'],

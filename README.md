@@ -1,5 +1,10 @@
 # ChessLab — Training Suite (v21)
 
+## Parity benchmarking (chess.com behavioral parity)
+- Corpus file: `/home/runner/work/chesslab/chesslab/benchmark/corpus.json`
+- Run benchmark gate: `npm run test:parity`
+- Generate JSON report: `npm run benchmark:review`
+
 ## v21 — content expansion (roadmap phase 8)
 - **Puzzle difficulty tiers**: Beginner/Club/Advanced/Master chips in Tactics → Practice, backed by the existing rating estimator. A **🎲 Next in tier** button picks a random puzzle from the tier while avoiding the last 8 you've seen (anti-repetition ring buffer) — falls back gracefully if a tier is small.
 - **Endgame curriculum path**: the 5 drills are now grouped **Basic → Practical → Advanced**, with a **📍 Next up** banner that always points at the first drill you haven't cleared yet in that order — a real progression instead of a flat list. (No new endgame positions invented — just organizing what was already validated.)

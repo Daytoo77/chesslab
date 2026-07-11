@@ -4,10 +4,11 @@
 // that judges the position your opponent inherited.
 import { Chess } from 'chess.js';
 import { getStockfish, getStockfishPool } from './stockfish.js';
-import { winPct, moveAccuracy, gameAccuracy, capsAccuracy, volatilityWeight, estimateElo, tagFromWinDrop, classifyMove } from './accuracy.js';
+import { calibratedWinPct, winPct, moveAccuracy, gameAccuracy, capsAccuracy, volatilityWeight, estimateElo, tagFromWinDrop, classifyMove } from './accuracy.js';
 import { bookContinuations } from './data/openingNames.js';
 import { VAL } from './engine.js';
 import { classifyMotifs, parseClocks, tallyMotifs } from './motifs.js';
+import { PARITY_CONFIG } from './parityConfig.js';
 
 const PIECE_NAMES = { p: 'pawn', n: 'knight', b: 'bishop', r: 'rook', q: 'queen', k: 'king' };
 const stripSan = (s) => s.replace(/[+#?!]/g, '');
@@ -77,12 +78,14 @@ export async function analyzeWithStockfish(pgn, color, { movetime = 300, onProgr
   const clocks = parseClocks(pgn); // per-ply remaining seconds, or null
   const pool = engine ? [engine] : await getStockfishPool(3);
   const sf = pool[0];
+  const cfg = PARITY_CONFIG.analysis;
+  const adaptiveMt = Math.max(movetime, history.length <= 24 ? Math.round(movetime * 1.35) : movetime);
 
   const sim = new Chess();
   const positions = [sim.fen()];
   for (const m of history) { sim.move(m.san); positions.push(sim.fen()); }
 
-  // one MultiPV(2) eval per position — the 2nd line powers "only-move" / Great
+  // one MultiPV eval per position — alternatives power "only-move" / Great
   // detection. Parallelized across the engine pool. Consistent by construction.
   const lineCp = (line) => (line.mate != null ? (line.mate > 0 ? 10000 - Math.abs(line.mate) : -10000 + Math.abs(line.mate)) : (line.cp ?? 0));
   const evals = new Array(positions.length);
@@ -90,15 +93,22 @@ export async function analyzeWithStockfish(pgn, color, { movetime = 300, onProgr
   await Promise.all(pool.map(async (eng, k) => {
     for (let i = k; i < positions.length; i += pool.length) {
       let lines = [];
-      try { lines = await eng.analyzeMulti(positions[i], movetime, 2); } catch { /* fallback below */ }
-      if (!lines.length) { const r = await eng.analyze(positions[i], movetime); lines = [{ cp: r.cp, mate: r.mate, pv: r.pv || (r.best ? [r.best] : []), depth: r.depth || 0 }]; }
+      try { lines = await eng.analyzeMulti(positions[i], adaptiveMt, cfg.multipv); } catch { /* fallback below */ }
+      if (!lines.length) {
+        const r = await eng.analyze(positions[i], adaptiveMt);
+        lines = [{ cp: r.cp, mate: r.mate, pv: r.pv || (r.best ? [r.best] : []), depth: r.depth || 0, wdl: r.wdl || null }];
+      }
       const stm = positions[i].split(' ')[1];
       const best = lines[0] || { cp: 0, mate: null, pv: [], depth: 0 };
       const cpBest = lineCp(best);
       const cpSecond = lines[1] ? lineCp(lines[1]) : null;
+      const bestWin = calibratedWinPct({ cp: cpBest, wdl: best.wdl || null, fen: positions[i] });
+      const secondWin = lines[1] ? calibratedWinPct({ cp: cpSecond, wdl: lines[1].wdl || null, fen: positions[i] }) : null;
       evals[i] = {
         white: stm === 'w' ? cpBest : -cpBest,
         whiteSecond: cpSecond == null ? null : (stm === 'w' ? cpSecond : -cpSecond),
+        whiteWin: stm === 'w' ? bestWin : 100 - bestWin,
+        whiteSecondWin: secondWin == null ? null : (stm === 'w' ? secondWin : 100 - secondWin),
         best: best.pv && best.pv[0] ? best.pv[0] : null,
         pv: best.pv || [], depth: best.depth || 0, mate: best.mate, stm,
       };
@@ -108,7 +118,7 @@ export async function analyzeWithStockfish(pgn, color, { movetime = 300, onProgr
   }));
 
   // white-POV win% at every position — powers the volatility weighting
-  const winWhiteSeq = evals.map((e) => winPct(Math.max(-1000, Math.min(1000, e.white))));
+  const winWhiteSeq = evals.map((e, i) => (e.whiteWin != null ? e.whiteWin : calibratedWinPct({ cp: e.white, fen: positions[i] })));
 
   const records = [];
   const accs = { w: [], b: [] }; // [{ acc, weight }]
@@ -119,19 +129,20 @@ export async function analyzeWithStockfish(pgn, color, { movetime = 300, onProgr
     const pov = (x) => (mv.color === 'w' ? x : -x);
     const before = pov(evals[i].white);
     const after = pov(evals[i + 1].white);
-    const wb = winPct(before), wa = winPct(after);
+    const wb = mv.color === 'w' ? evals[i].whiteWin : (100 - evals[i].whiteWin);
+    const wa = mv.color === 'w' ? evals[i + 1].whiteWin : (100 - evals[i + 1].whiteWin);
     const playedUci = mv.from + mv.to + (mv.promotion || '');
     const isBest = playedUci === evals[i].best;
     const winDrop = isBest ? 0 : Math.max(0, wb - wa);
     const cpl = isBest ? 0 : Math.max(0, Math.min(1000, before - after));
 
-    const secondWin = evals[i].whiteSecond == null ? null : winPct(pov(evals[i].whiteSecond));
+    const secondWin = evals[i].whiteSecondWin == null ? null : (mv.color === 'w' ? evals[i].whiteSecondWin : (100 - evals[i].whiteSecondWin));
     // net material invested = what the opponent can win back minus what this
     // move itself captured (so Bxd8 winning a rook is not a "sacrifice")
     const sacInvest = sacInvestment(positions[i + 1]) - (VAL[mv.captured] || 0);
     let legalCount = 99;
     try { legalCount = new Chess(positions[i]).moves().length; } catch { /* keep default */ }
-    const inBook = i < 16 && bookContinuations(sansSoFar).map(stripSan).includes(stripSan(mv.san));
+    const inBook = i < cfg.maxBookPly && bookContinuations(sansSoFar).map(stripSan).includes(stripSan(mv.san));
     const mateForMover = evals[i].mate != null && evals[i].mate > 0;
     const keptMate = evals[i + 1].mate != null && evals[i + 1].mate < 0;
     const prevWasError = i > 0 && ['mistake', 'blunder', 'miss'].includes(records[i - 1].tag);
@@ -171,8 +182,8 @@ export async function analyzeWithStockfish(pgn, color, { movetime = 300, onProgr
       const povR = (x) => (r.color === 'w' ? x : -x);
       const cpiW = Li[0] ? (stmI === 'w' ? lineCp(Li[0]) : -lineCp(Li[0])) : 0;
       const cpjW = Lj[0] ? (stmJ === 'w' ? lineCp(Lj[0]) : -lineCp(Lj[0])) : 0;
-      const wbD = winPct(povR(cpiW));
-      const waD = winPct(povR(cpjW));
+      const wbD = calibratedWinPct({ cp: povR(cpiW), wdl: Li[0]?.wdl || null, fen: positions[i] });
+      const waD = calibratedWinPct({ cp: povR(cpjW), wdl: Lj[0]?.wdl || null, fen: positions[i + 1] });
       const isBestD = Li[0] && Li[0].pv && Li[0].pv[0] === r._uci;
       const stillBrilliant = r._sac >= 150 && isBestD && waD >= 50 && waD <= 97 && wbD <= 97;
       if (!stillBrilliant) {
@@ -229,7 +240,7 @@ export async function analyzeWithStockfish(pgn, color, { movetime = 300, onProgr
       acpl: { w: Math.round(avg(cpls.w) ?? 0), b: Math.round(avg(cpls.b) ?? 0) },
       elo: { w: estimateElo(avg(cpls.w)), b: estimateElo(avg(cpls.b)) },
       counts,
-      evals: evals.map((e) => Math.max(-1000, Math.min(1000, e.white))),
+      evals: evals.map((e) => Math.max(-cfg.evalClampCp, Math.min(cfg.evalClampCp, e.white))),
     },
   };
 }

@@ -1,0 +1,21 @@
+[
+  {
+    "id": "daytoo77-vs-t10kay-2026-07-11",
+    "source": "chess.com",
+    "colorPerspective": "both",
+    "pgn": "[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"2026.07.11\"]\n[Round \"-\"]\n[White \"daytoo77\"]\n[Black \"T10Kay\"]\n[Result \"1-0\"]\n[CurrentPosition \"rnb1kb1r/pppp1ppp/8/8/8/2N3P1/PPPP4/R1BQK2B b Qkq - 0 10\"]\n[Timezone \"UTC\"]\n[ECO \"C28\"]\n[ECOUrl \"https://www.chess.com/openings/Vienna-Game-Falkbeer-Vienna-Gambit\"]\n[UTCDate \"2026.07.11\"]\n[UTCTime \"08:53:23\"]\n[WhiteElo \"535\"]\n[BlackElo \"520\"]\n[TimeControl \"300\"]\n[Termination \"daytoo77 won by resignation\"]\n[StartTime \"08:53:23\"]\n[EndDate \"2026.07.11\"]\n[EndTime \"08:55:24\"]\n[Link \"https://www.chess.com/analysis/game/live/171416272360/analysis?move=7\"]\n\n1. e4 e5 2. Nc3 Nf6 3. f4 exf4 4. e5 Ng4 5. Be2 Nxe5 6. Nf3 Nxf3+ 7. Bxf3 Qh4+ 8. g3 fxg3 9. hxg3 Qxh1+ 10. Bxh1 1-0",
+    "expected": {
+      "accuracy": { "w": 66.6, "b": 39.9 },
+      "rating": { "w": 600, "b": 100 },
+      "counts": {
+        "w": { "brilliant": 0, "great": 0, "book": 3, "best": 3, "excellent": 0, "good": 1, "inaccuracy": 2, "mistake": 0, "miss": 1, "blunder": 0 },
+        "b": { "brilliant": 0, "great": 1, "book": 2, "best": 2, "excellent": 0, "good": 1, "inaccuracy": 0, "mistake": 0, "miss": 1, "blunder": 2 }
+      }
+    },
+    "tolerance": {
+      "accuracyMaxDelta": 8,
+      "ratingMaxDelta": 220,
+      "tagDeltaTotalMax": 8
+    }
+  }
+]

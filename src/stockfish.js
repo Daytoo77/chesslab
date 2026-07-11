@@ -46,6 +46,7 @@ export class UciEngine {
     this.send('uci');
     await this.expect((l) => (l.includes('uciok') ? true : undefined), timeout);
     this.send('setoption name Threads value 1');
+    this.send('setoption name UCI_ShowWDL value true');
     this.send('isready');
     await this.expect((l) => (l.includes('readyok') ? true : undefined), 10000);
   }
@@ -70,11 +71,13 @@ export class UciEngine {
         const d = line.match(/\bdepth (\d+)/);
         const sc = line.match(/\bscore (cp|mate) (-?\d+)/);
         if (sc) {
+          const wdl = line.match(/\bwdl (\d+) (\d+) (\d+)/);
           last = {
             depth: d ? +d[1] : 0,
             cp: sc[1] === 'cp' ? +sc[2] : null,
             mate: sc[1] === 'mate' ? +sc[2] : null,
             pv: line.split(' pv ')[1].trim().split(/\s+/),
+            wdl: wdl ? { w: +wdl[1], d: +wdl[2], l: +wdl[3] } : null,
           };
         }
       }
@@ -102,11 +105,13 @@ export class UciEngine {
         const sc = line.match(/\bscore (cp|mate) (-?\d+)/);
         if (sc) {
           const idx = mp ? +mp[1] - 1 : 0;
+          const wdl = line.match(/\bwdl (\d+) (\d+) (\d+)/);
           lines[idx] = {
             depth: d ? +d[1] : 0,
             cp: sc[1] === 'cp' ? +sc[2] : null,
             mate: sc[1] === 'mate' ? +sc[2] : null,
             pv: line.split(' pv ')[1].trim().split(/\s+/),
+            wdl: wdl ? { w: +wdl[1], d: +wdl[2], l: +wdl[3] } : null,
           };
         }
       }
@@ -137,11 +142,13 @@ export class UciEngine {
         const sc = line.match(/\bscore (cp|mate) (-?\d+)/);
         if (!sc) return;
         const idx = mp ? +mp[1] - 1 : 0;
+        const wdl = line.match(/\bwdl (\d+) (\d+) (\d+)/);
         lines[idx] = {
           depth: d ? +d[1] : 0,
           cp: sc[1] === 'cp' ? +sc[2] : null,
           mate: sc[1] === 'mate' ? +sc[2] : null,
           pv: line.split(' pv ')[1].trim().split(/\s+/),
+          wdl: wdl ? { w: +wdl[1], d: +wdl[2], l: +wdl[3] } : null,
         };
         if (d) curDepth = Math.max(curDepth, +d[1]);
         if (onUpdate) onUpdate(lines.filter(Boolean), curDepth);

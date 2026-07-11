@@ -3,9 +3,12 @@
 // "How to get better at chess" guide: the weekly 50/20/15/10/5 study split,
 // the daily tactics habit, the in-game thinking checklist, middlegame planning,
 // endgame essentials, opening principles, and "analyse your own games first".
-import React, { useState } from 'react';
-import { useStats, dayKey, weekKeys, weekStudy, weaknessTop, STUDY_CATS } from '../store.js';
+import React, { useMemo, useState } from 'react';
+import { useStats, dayKey, weekKeys, weekStudy, weaknessTop, weaknessRecent, lineDue, STUDY_CATS } from '../store.js';
 import { MOTIF_META } from '../motifs.js';
+import { buildDailyQueue } from '../queue.js';
+import { OPENINGS } from '../data/openings.js';
+import { mergeOpenings } from '../data/openings2.js';
 import { useUi } from '../settings.js';
 
 const fmtMin = (m) => {
@@ -50,6 +53,7 @@ const PRINCIPLES = [
 export default function Train() {
   const s = useStats();
   const setPage = useUi((u) => u.setPage);
+  const requestTactics = useUi((u) => u.requestTactics);
   const today = dayKey();
 
   // --- weekly study plan (logged minutes vs the recommended split) ---
@@ -73,6 +77,22 @@ export default function Train() {
   const topWeak = weaknessTop(s.weaknessProfile, 1)[0];
   const topMeta = topWeak ? MOTIF_META[topWeak[0]] : null;
 
+  // ----- the personalized "Do this now" queue -----
+  const dueLines = useMemo(
+    () => mergeOpenings(OPENINGS, s.customLines).reduce((n, o) => n + o.lines.filter((l) => lineDue(s.srs, l.id)).length, 0),
+    [s.customLines, s.srs]
+  );
+  const queue = buildDailyQueue({
+    dueLines,
+    solvedToday,
+    dailyTacticGoal: s.dailyTacticGoal,
+    topWeakness: topWeak || null,
+    recentWeaknessCount: topWeak ? (weaknessRecent(s.weaknessProfile, 5)[topWeak[0]] || 0) : 0,
+    analyzedToday,
+    slowGameToday: slowGameDone,
+  });
+  const goQueue = (t) => (t.motif ? requestTactics({ motif: t.motif }) : setPage(t.page));
+
   const habits = [
     { done: tacticPct >= 100, label: `Solve ${s.dailyTacticGoal} tactics`, sub: `${solvedToday} / ${s.dailyTacticGoal} today`, page: 'tactics', pct: tacticPct },
     { done: slowGameDone, label: 'Play one slow game', sub: slowGameDone ? 'done today ✓' : '15|10 or longer', page: 'play', pct: slowGameDone ? 100 : 0 },
@@ -87,6 +107,28 @@ export default function Train() {
         A structured program beats random play. This turns the classic improvement routine into something you can
         actually track — log your week, keep the daily habit, and carry the thinking checklist into every game.
       </p>
+
+      {/* ---------- Do this now — the personalized queue ---------- */}
+      <div className="panel" style={{ marginBottom: 16 }}>
+        <h3>🎯 Do this now <span className="muted" style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 500 }}>— ranked by what moves your rating today</span></h3>
+        {queue.length === 0 ? (
+          <p className="small" style={{ color: 'var(--good)', margin: '10px 0 0' }}>✓ Everything done — goals hit, nothing due, habits complete. Enjoy a casual game.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+            {queue.map((t, i) => (
+              <div key={t.id} className="queue-item">
+                <span className="queue-rank">{i + 1}</span>
+                <span className="queue-icon">{t.icon}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <b>{t.label}</b>
+                  <span className="small muted"> — {t.sub}</span>
+                </span>
+                <button className="btn btn-mini" onClick={() => goQueue(t)}>Go →</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* ---------- Your #1 leak (from the cross-game motif profile) ---------- */}
       {topMeta && (

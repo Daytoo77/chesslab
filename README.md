@@ -1,4 +1,13 @@
-# ChessLab — Training Suite (v18)
+# ChessLab — Training Suite (v19)
+
+## v19 — quality gates + the personal-coach loop (roadmap phases 1–2)
+- **Tests + CI**: 22 zero-dependency unit tests (`npm test`, plain `node --test`) covering the motif classifier, win% math, coach context builders, and the new queue/trends logic; a GitHub Actions workflow now builds and tests every push/PR.
+- **🎯 "Do this now" queue** (top of the Training Plan): one ranked list combining SRS-due opening lines, your remaining daily tactics, your #1 recurring weakness (weighted by how *recently* it bites), and the analyze/slow-game habits. One click jumps you into the right tool, preloaded.
+- **Analyzer → training bridge**: every mistake card now has **🧩 Drill this** (jumps to Tactics preloaded with that pattern — curated fork/mate/back-rank puzzles when they exist, your own harvested blunders when they don't) and **💥 My blunders**.
+- **Motif trends**: the Dashboard weakness panel now shows **↘ improving / ↗ rising** per motif by comparing the newer half of your recent games against the older half — you can see whether the drilling works.
+- Deferred from the roadmap (deliberately): the big Play/Analyzer/Openings file-split refactor — it needs this test safety net in place first.
+
+
 
 ## v18 — organised opening study + play on your phone
 - **Opening Explorer reorganised** the same way as the Analyzer: the board is pinned on the left with a **tabbed panel** on the right — **Lines · Moves · Idea · Coach** while studying (Quiz / Test tabs replace them in those modes). The AI coach is now one click away *while the board stays in view* — no scrolling required to ask it a question mid-line.

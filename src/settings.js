@@ -41,4 +41,7 @@ export const useUi = create((set) => ({
   playRequest: null, // { fen, color, name } — start a bot game from a repertoire position
   requestPlay: (fen, color, name) => set({ playRequest: { fen, color, name }, page: 'play' }),
   consumePlay: () => set({ playRequest: null }),
+  tacticsRequest: null, // { motif?, mode? } — jump into Tactics preloaded (analyzer/queue bridge)
+  requestTactics: (req) => set({ tacticsRequest: req || {}, page: 'tactics' }),
+  consumeTactics: () => set({ tacticsRequest: null }),
 }));

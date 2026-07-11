@@ -169,6 +169,15 @@ export function classifyMotifs({ fenBefore, fenAfter, playedMove, bestMove, repl
   return [...new Set(tags)];
 }
 
+// Which curated-puzzle theme drills each analyzer motif. null = no curated
+// equivalent; drill "my blunders" (harvested from your own games) instead.
+export const MOTIF_PUZZLE_HINT = {
+  missed_fork: 'fork', allowed_fork: 'fork',
+  missed_mate: 'mate', allowed_mate: 'mate',
+  back_rank: 'back-rank',
+  hung_piece: null, pawn_grab: null, missed_capture: null, time_trouble: null,
+};
+
 // Aggregate a list of motif arrays into { motif: count }.
 export function tallyMotifs(lists) {
   const counts = {};

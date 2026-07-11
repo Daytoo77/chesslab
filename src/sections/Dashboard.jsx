@@ -6,6 +6,7 @@ import { DRILLS } from '../data/endgames.js';
 import { BOTS } from '../data/bots.js';
 import { useStats, dayKey, lineDue, weaknessTop, weaknessRecent } from '../store.js';
 import { MOTIF_META } from '../motifs.js';
+import { motifTrends } from '../queue.js';
 import { useUi } from '../settings.js';
 
 function Sparkline({ data, w = 220, h = 44 }) {
@@ -129,6 +130,7 @@ export default function Dashboard() {
         const top = weaknessTop(s.weaknessProfile, 6);
         if (!top.length) return null;
         const recent = weaknessRecent(s.weaknessProfile, 5);
+        const trends = motifTrends(s.weaknessProfile);
         const maxC = Math.max(...top.map(([, c]) => c));
         const lead = MOTIF_META[top[0][0]];
         return (
@@ -137,10 +139,15 @@ export default function Dashboard() {
             {top.map(([k, c]) => {
               const mm = MOTIF_META[k]; if (!mm) return null;
               const rc = recent[k] || 0;
+              const tr = trends[k];
               return (
                 <div key={k} style={{ margin: '9px 0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                    <span className="small"><span style={{ marginRight: 5 }}>{mm.icon}</span><b>{mm.label}</b></span>
+                    <span className="small">
+                      <span style={{ marginRight: 5 }}>{mm.icon}</span><b>{mm.label}</b>
+                      {tr && tr.dir === 'down' && <span className="chip green" style={{ marginLeft: 7, padding: '1px 7px' }} title={`${tr.olderAvg}/game → ${tr.newerAvg}/game over your recent window`}>↘ improving</span>}
+                      {tr && tr.dir === 'up' && <span className="chip red" style={{ marginLeft: 7, padding: '1px 7px' }} title={`${tr.olderAvg}/game → ${tr.newerAvg}/game over your recent window`}>↗ rising</span>}
+                    </span>
                     <span className="small muted" style={{ fontFamily: 'var(--mono)' }}>{c}× {rc > 0 && <span className="chip red" style={{ marginLeft: 6, padding: '1px 7px' }}>{rc} recent</span>}</span>
                   </div>
                   <div className="train-cat-bar" style={{ marginTop: 4 }}><div style={{ width: `${(c / maxC) * 100}%`, background: 'linear-gradient(90deg,var(--bad),#e58f2a)' }} /></div>

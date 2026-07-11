@@ -166,6 +166,7 @@ export default function Analyzer() {
   const { analyzeDone, recordProfile, addMyPuzzles, recordWeaknesses } = useStats();
   const analyzeRequest = useUi((u) => u.analyzeRequest);
   const consumeAnalysis = useUi((u) => u.consumeAnalysis);
+  const requestTactics = useUi((u) => u.requestTactics);
   const [pgn, setPgn] = useState('');
   const [color, setColor] = useState('w');
   const [quality, setQuality] = useState('strong');
@@ -708,6 +709,10 @@ export default function Analyzer() {
                         {m.motifs && m.motifs.length > 0 && (
                           <div className="motif-row">
                             {m.motifs.map((t) => { const mm = MOTIF_META[t]; return mm ? <span key={t} className={`chip ${mm.cls} motif-chip`} title={mm.advice}>{mm.icon} {mm.label}</span> : null; })}
+                            <button className="btn btn-mini" title="Jump to Tactics preloaded with this pattern"
+                              onClick={(e) => { e.stopPropagation(); requestTactics({ motif: m.motifs[0] }); }}>🧩 Drill this</button>
+                            <button className="btn btn-mini" title="Replay puzzles harvested from your own mistakes"
+                              onClick={(e) => { e.stopPropagation(); requestTactics({ mode: 'mine' }); }}>💥 My blunders</button>
                           </div>
                         )}
                         {active && st === 'guessing' && (

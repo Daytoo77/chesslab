@@ -3,6 +3,8 @@ import { Chess } from 'chess.js';
 import Board from '../components/Board.jsx';
 import { PUZZLES } from '../data/puzzles.js';
 import { useStats, dayKey } from '../store.js';
+import { useUi } from '../settings.js';
+import { MOTIF_PUZZLE_HINT } from '../motifs.js';
 import { playForMove, sounds } from '../sounds.js';
 
 const strip = (s) => s.replace(/[+#!?]/g, '');
@@ -69,6 +71,28 @@ export default function Tactics() {
     failedAttempt.current = false;
     setFen(null); setStep(0); setStatus('playing'); setWrong(false); setHint(false); setLastMove(null);
   }
+
+  // ----- analyzer/queue bridge: arrive preloaded on the right drill -----
+  const tacticsRequest = useUi((u) => u.tacticsRequest);
+  const consumeTactics = useUi((u) => u.consumeTactics);
+  useEffect(() => {
+    if (!tacticsRequest) return;
+    const { motif, mode: reqMode } = tacticsRequest;
+    consumeTactics();
+    setRushOn(false); setWoodOn(false);
+    const hint = motif ? MOTIF_PUZZLE_HINT[motif] : null;
+    if (reqMode === 'mine' || (motif && !hint)) {
+      // no curated theme for this leak — your own harvested blunders ARE the drill
+      if (myPuzzles.length) { setMode('mine'); selectPuzzle(0); }
+      else { setMode('practice'); selectPuzzle(0); }
+      return;
+    }
+    if (hint) {
+      const idx = PUZZLES.findIndex((p) => (p.motif || '').toLowerCase().includes(hint));
+      setMode('practice');
+      selectPuzzle(idx >= 0 ? idx : 0);
+    }
+  }, [tacticsRequest]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ----- rush timer -----
   useEffect(() => {

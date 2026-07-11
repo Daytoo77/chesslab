@@ -1,0 +1,16 @@
+[
+  {
+    "id": "daytoo77-vs-t10kay-2026-07-11",
+    "capturedAt": "2026-07-11",
+    "how": "real in-app Game Review (strong quality, Stockfish 17 lite, baseline parityConfig after PR repair)",
+    "actual": {
+      "accuracy": { "w": 49.8, "b": 42.2 },
+      "rating": { "w": 150, "b": 150 },
+      "counts": {
+        "w": { "brilliant": 0, "great": 2, "book": 3, "best": 1, "excellent": 0, "good": 1, "inaccuracy": 2, "mistake": 0, "miss": 1, "blunder": 0 },
+        "b": { "brilliant": 0, "great": 1, "book": 2, "best": 2, "excellent": 0, "good": 0, "inaccuracy": 1, "mistake": 0, "miss": 1, "blunder": 2 }
+      }
+    },
+    "notes": "Tags PASS (delta 6 <= 8): blunders/misses/books align; deltas are adjacent-tier best<->great disagreements. Accuracy w FAILS (49.8 vs 66.6, delta 16.8 > 8): chess.com CAPS is more generous to the winning side in short decisive games — the real tuning target is the game-accuracy aggregation + rating mapping, NOT the classification bins."
+  }
+]

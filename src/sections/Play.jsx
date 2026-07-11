@@ -2,58 +2,19 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import Board from '../components/Board.jsx';
 import EvalBar from '../components/EvalBar.jsx';
+import PlayerBar from '../components/play/PlayerBar.jsx';
+import SetupScreen from '../components/play/SetupScreen.jsx';
+import GameOverCard from '../components/play/GameOverCard.jsx';
+import ChecklistAid from '../components/play/ChecklistAid.jsx';
 import { BOTS } from '../data/bots.js';
-import { botMove } from '../playEngine.js';
 import { getStockfish, getPlayEngine } from '../stockfish.js';
-import { openingName, bookContinuations } from '../data/openingNames.js';
+import { openingName } from '../data/openingNames.js';
 import { fig } from '../figurine.js';
 import { useStats } from '../store.js';
 import { useSettings, useUi } from '../settings.js';
 import { playForMove, sounds } from '../sounds.js';
-
-const TIME_CONTROLS = [
-  { id: 'none', label: '∞ Casual', ms: null, inc: 0 },
-  { id: '3+2', label: '3+2 Blitz', ms: 180e3, inc: 2e3 },
-  { id: '5+0', label: '5 min Blitz', ms: 300e3, inc: 0 },
-  { id: '10+0', label: '10 min Rapid', ms: 600e3, inc: 0 },
-  { id: '15+10', label: '15+10 Rapid', ms: 900e3, inc: 10e3 },
-];
-
-function fmtClock(ms) {
-  if (ms == null) return '--:--';
-  const s = Math.max(0, Math.ceil(ms / 1000));
-  if (s >= 3600) return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
-  if (ms < 20e3) return `${Math.floor(s / 60)}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')}.${Math.floor((ms % 1000) / 100)}`;
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-}
-
-// In-game thinking aid — the every-move checklist from the Training Plan,
-// one tap away while you actually play (forcing moves first).
-const MOVE_CHECKLIST = [
-  'Checks — any check that achieves something?',
-  'Threats — am I about to be checked or lose material?',
-  'Hanging — is anything of mine (or theirs) undefended?',
-  'Tactics — fork, pin, skewer, discovered attack?',
-  'Activity — a better square, an outpost, or an open file?',
-];
-function ChecklistAid() {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="panel">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }} onClick={() => setOpen((o) => !o)}>
-        <h3 style={{ margin: 0 }}>✓ Blunder-check</h3>
-        <span className="muted">{open ? '▾' : '▸'}</span>
-      </div>
-      {open ? (
-        <ul className="checklist tight" style={{ margin: '12px 0 4px' }}>
-          {MOVE_CHECKLIST.map((t) => <li key={t}>{t}</li>)}
-        </ul>
-      ) : (
-        <p className="small muted" style={{ margin: '6px 0 0' }}>Tap before you move — run the list, most forcing first.</p>
-      )}
-    </div>
-  );
-}
+import { useGameClock, TIME_CONTROLS } from '../hooks/useGameClock.js';
+import { useBotReply } from '../hooks/useBotReply.js';
 
 export default function Play() {
   const { vsRecord, recordGame, recordSlowGame, savedGame, saveGame, clearSavedGame } = useStats();
@@ -73,7 +34,6 @@ export default function Play() {
   const [, setTick] = useState(0); // re-render trigger after gameRef mutations
   const [userColor, setUserColor] = useState('w');
   const [bot, setBot] = useState(BOTS[3]);
-  const [thinking, setThinking] = useState(false);
   const [lastMove, setLastMove] = useState(null);
   const [premove, setPremove] = useState(null);
   const [hintArrow, setHintArrow] = useState(null);
@@ -83,11 +43,6 @@ export default function Play() {
   const [evalCp, setEvalCp] = useState(null); // white POV, for the eval bar
   const [drawMsg, setDrawMsg] = useState(null);
   const [flipped, setFlipped] = useState(false);
-
-  // clocks
-  const [clocks, setClocks] = useState({ w: null, b: null });
-  const clockRef = useRef({ w: null, b: null, inc: 0, runningSince: null, turn: 'w' });
-  const lowTimeWarned = useRef(false);
 
   const gameIdRef = useRef(0); // guards async engine replies after reset/new game
   const movesListRef = useRef(null);
@@ -117,38 +72,17 @@ export default function Play() {
 
   const opening = useMemo(() => openingName(history.map((m) => m.san)), [history.length]);
 
-  // ---------- clock machinery ----------
-  useEffect(() => {
-    if (phase !== 'playing' || clockRef.current.w == null) return;
-    const iv = setInterval(() => {
-      const c = clockRef.current;
-      if (c.runningSince == null) return;
-      const elapsed = Date.now() - c.runningSince;
-      const remain = c[c.turn] - elapsed;
-      setClocks({ w: c.turn === 'w' ? remain : c.w, b: c.turn === 'b' ? remain : c.b });
-      if (remain <= 10e3 && !lowTimeWarned.current && c.turn === userColor) {
-        lowTimeWarned.current = true;
-        sounds.lowTime();
-      }
-      if (remain <= 0) {
-        c[c.turn] = 0;
-        c.runningSince = null;
-        finishGame(c.turn === userColor ? 'l' : 'w', c.turn === userColor ? 'You ran out of time' : `${bot.name} ran out of time`);
-      }
-    }, 100);
-    return () => clearInterval(iv);
+  // ---------- clock ----------
+  const clock = useGameClock({
+    active: phase === 'playing',
+    userColor,
+    onLowTime: () => sounds.lowTime(),
+    onFlag: (color) => finishGame(color === userColor ? 'l' : 'w', color === userColor ? 'You ran out of time' : `${bot.name} ran out of time`),
   });
+  const { clocks } = clock;
 
-  function clockSwitch(moverColor) {
-    const c = clockRef.current;
-    if (c.w == null) return;
-    if (c.runningSince != null) {
-      c[moverColor] = Math.max(0, c[moverColor] - (Date.now() - c.runningSince)) + c.inc;
-    }
-    c.turn = moverColor === 'w' ? 'b' : 'w';
-    c.runningSince = Date.now();
-    setClocks({ w: c.w, b: c.b });
-  }
+  // ---------- bot move selection ----------
+  const { thinking, requestMove, setThinking } = useBotReply();
 
   // ---------- game flow ----------
   // opts: { startFen, forceColor, label } — for "play this repertoire position vs a bot"
@@ -169,18 +103,15 @@ export default function Play() {
     gameRef.current = g;
     setBot(chosen);
     setUserColor(color);
-    setFlippedSafe(false);
+    setFlipped(false);
     setPhase('playing');
     setResult(null); setLastMove(null); setPremove(null); setHintArrow(null); setHintsUsed(0);
     setViewPly(null); setEvalCp(null); setDrawMsg(null); setThinking(false);
-    lowTimeWarned.current = false;
-    clockRef.current = { w: tc.ms, b: tc.ms, inc: tc.inc, runningSince: tc.ms ? Date.now() : null, turn: g.turn() };
-    setClocks({ w: tc.ms, b: tc.ms });
+    clock.start(tc, g.turn());
     sounds.gameStart();
     setTick((t) => t + 1);
     if (g.turn() !== color) scheduleBotMove(g, chosen, gameIdRef.current);
   }
-  function setFlippedSafe(v) { setFlipped(v); }
 
   // "play this position vs a bot" handoff (Opening Explorer)
   useEffect(() => {
@@ -195,10 +126,9 @@ export default function Play() {
   function persistGame(g) {
     if (g.__finished) return;
     try {
-      const c = clockRef.current;
       saveGame({
         pgn: g.pgn(), botId: bot.id, userColor, tcId,
-        clocks: { w: c.runningSince != null && c.turn === 'w' ? c.w - (Date.now() - c.runningSince) : c.w, b: c.runningSince != null && c.turn === 'b' ? c.b - (Date.now() - c.runningSince) : c.b },
+        clocks: clock.snapshot(),
         startFen: g.__startFen || null, label: g.__label || null, ts: Date.now(),
       });
     } catch { /* persistence is best-effort */ }
@@ -221,10 +151,8 @@ export default function Play() {
     setPhase('playing');
     setResult(null); setLastMove(null); setPremove(null); setHintArrow(null); setHintsUsed(0);
     setViewPly(null); setEvalCp(null); setDrawMsg(null); setThinking(false); setFlipped(false);
-    lowTimeWarned.current = false;
     const tc = TIME_CONTROLS.find((t) => t.id === (s.tcId || 'none'));
-    clockRef.current = { w: s.clocks ? s.clocks.w : tc.ms, b: s.clocks ? s.clocks.b : tc.ms, inc: tc.inc, runningSince: (s.clocks && s.clocks.w != null) ? Date.now() : null, turn: g.turn() };
-    setClocks({ w: clockRef.current.w, b: clockRef.current.b });
+    clock.resume(s.clocks, tc, g.turn());
     sounds.gameStart();
     setTick((t) => t + 1);
     if (g.turn() !== s.userColor && !g.isGameOver()) scheduleBotMove(g, chosen, gameIdRef.current);
@@ -233,7 +161,7 @@ export default function Play() {
   function finishGame(outcome, reason) {
     if (gameRef.current.__finished) return;
     gameRef.current.__finished = true;
-    clockRef.current.runningSince = null;
+    clock.stop();
     setPhase('over');
     setThinking(false);
     setPremove(null);
@@ -270,56 +198,20 @@ export default function Play() {
   }
 
   function scheduleBotMove(g, chosenBot, id) {
-    setThinking(true);
-    const started = Date.now();
-    // opening book: for the first plies of a from-scratch game, bots play
-    // varied human openings instead of the engine's eternal same reply
-    if (!g.__startFen && g.history().length < 10) {
-      const conts = bookContinuations(g.history());
-      const legal = new Set(g.moves().map((s) => s.replace(/[+#]/g, '')));
-      const candidates = conts.filter((s) => legal.has(s.replace(/[+#]/g, '')));
-      if (candidates.length && Math.random() < 0.92) {
-        const pick = candidates[Math.floor(Math.random() * candidates.length)];
-        setTimeout(() => {
-          if (gameIdRef.current !== id || gameRef.current.__finished) return;
-          if (g.isGameOver()) { setThinking(false); return; }
-          const m = g.move(pick);
-          playForMove(m, g.isCheck());
-          setLastMove({ from: m.from, to: m.to });
-          clockSwitch(m.color);
-          setThinking(false);
-          setTick((t) => t + 1);
-          if (checkGameEnd(g, false)) return;
-          persistGame(g);
-          refreshEval(g, id);
-          executePremove(g, id);
-        }, 350 + Math.random() * 400);
-        return;
-      }
-    }
-    botMove(g.fen(), chosenBot.params).then((r) => {
-      if (gameIdRef.current !== id || gameRef.current.__finished) return;
-      const apply = () => {
-        if (gameIdRef.current !== id || gameRef.current.__finished) return;
-        if (r && r.san && !g.isGameOver()) {
-          const m = g.move(r.san);
-          playForMove(m, g.isCheck());
-          setLastMove({ from: m.from, to: m.to });
-          clockSwitch(m.color);
-          setThinking(false);
-          setTick((t) => t + 1);
-          if (checkGameEnd(g, false)) return;
-          persistGame(g);
-          refreshEval(g, id);
-          executePremove(g, id);
-        } else {
-          setThinking(false);
-        }
-      };
-      // a touch of "thinking time" so weak bots don't move instantly
-      const minDelay = Math.max(0, 300 - (Date.now() - started) + Math.random() * 250);
-      setTimeout(apply, minDelay);
-    }).catch(() => setThinking(false));
+    requestMove(g, chosenBot, id, {
+      isStale: (checkId) => gameIdRef.current !== checkId || g.__finished,
+      onPicked: (san) => {
+        const m = g.move(san);
+        playForMove(m, g.isCheck());
+        setLastMove({ from: m.from, to: m.to });
+        clock.switchTurn(m.color);
+        setTick((t) => t + 1);
+        if (checkGameEnd(g, false)) return;
+        persistGame(g);
+        refreshEval(g, id);
+        executePremove(g, id);
+      },
+    });
   }
 
   function executePremove(g, id) {
@@ -329,7 +221,7 @@ export default function Play() {
         const m = g.move({ from: pm.from, to: pm.to, promotion: pm.promotion || 'q' });
         playForMove(m, g.isCheck());
         setLastMove({ from: m.from, to: m.to });
-        clockSwitch(m.color);
+        clock.switchTurn(m.color);
         setHintArrow(null);
         setTick((t) => t + 1);
         if (!checkGameEnd(g, true)) {
@@ -358,7 +250,7 @@ export default function Play() {
     setLastMove({ from: m.from, to: m.to });
     setHintArrow(null);
     setDrawMsg(null);
-    clockSwitch(m.color);
+    clock.switchTurn(m.color);
     setTick((t) => t + 1);
     if (checkGameEnd(g, true)) return true;
     persistGame(g);
@@ -460,66 +352,14 @@ export default function Play() {
   // ---------- setup screen ----------
   if (phase === 'setup') {
     return (
-      <div>
-        <h1 className="page-title">Play <span className="accent">vs Bots</span></h1>
-        <p className="page-sub">A full strength ladder from beginner to full-power Stockfish — pick your sparring partner.</p>
-
-        {savedGame && (
-          <div className="banner gold big" style={{ marginBottom: 14, maxWidth: 720 }}>
-            ♟ Unfinished game vs <b>{(BOTS.find((b) => b.id === savedGame.botId) || {}).name || 'bot'}</b>
-            {savedGame.label ? ` (${savedGame.label})` : ''} — saved {new Date(savedGame.ts).toLocaleString()}.
-            <div className="btn-row">
-              <button className="btn primary" onClick={resumeSaved}>▶ Resume game</button>
-              <button className="btn" onClick={clearSavedGame}>Discard</button>
-            </div>
-          </div>
-        )}
-
-        <div className="bot-grid">
-          {BOTS.map((b, i) => {
-            const r = vsRecord[b.id] || { w: 0, d: 0, l: 0 };
-            const played = r.w + r.d + r.l;
-            return (
-              <button key={b.id} style={{ '--i': i }} className={`bot-card ${botId === b.id ? 'active' : ''}`} onClick={() => setBotId(b.id)}>
-                <div className="bot-emoji">{b.emoji}</div>
-                <div className="bot-name">{b.name}</div>
-                <div className="bot-elo">{b.elo === 3200 ? 'MAX' : b.elo}</div>
-                <div className="bot-tag">{b.tagline}</div>
-                {played > 0 && <div className="bot-rec">+{r.w} ={r.d} −{r.l}</div>}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="panel" style={{ marginTop: 18, maxWidth: 720 }}>
-          <h3>Game setup</h3>
-          <div className="btn-row" style={{ alignItems: 'center' }}>
-            <span className="small muted">You play:</span>
-            {['white', 'black', 'random'].map((c) => (
-              <button key={c} className={`btn ${colorChoice === c ? 'primary' : ''}`} onClick={() => setColorChoice(c)}>
-                {c === 'white' ? '⚪ White' : c === 'black' ? '⚫ Black' : '🎲 Random'}
-              </button>
-            ))}
-          </div>
-          <div className="btn-row" style={{ alignItems: 'center' }}>
-            <span className="small muted">Time:</span>
-            {TIME_CONTROLS.map((t) => (
-              <button key={t.id} className={`btn ${tcId === t.id ? 'primary' : ''}`} onClick={() => setTcId(t.id)}>{t.label}</button>
-            ))}
-          </div>
-          <div className="btn-row" style={{ alignItems: 'center' }}>
-            <label className="small" style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-              <input type="checkbox" checked={evalBarPlay} onChange={(e) => setSettings({ evalBarPlay: e.target.checked })} />
-              Show live eval bar (training wheels)
-            </label>
-          </div>
-          <div className="btn-row">
-            <button className="btn primary" style={{ fontSize: 16, padding: '10px 26px' }} onClick={() => startGame()}>
-              ▶ Play {(BOTS.find((b) => b.id === botId) || {}).name}
-            </button>
-          </div>
-        </div>
-      </div>
+      <SetupScreen
+        savedGame={savedGame} resumeSaved={resumeSaved} clearSavedGame={clearSavedGame}
+        vsRecord={vsRecord} botId={botId} setBotId={setBotId}
+        colorChoice={colorChoice} setColorChoice={setColorChoice}
+        tcId={tcId} setTcId={setTcId}
+        evalBarPlay={evalBarPlay} setEvalBarPlay={(v) => setSettings({ evalBarPlay: v })}
+        onStart={() => startGame()}
+      />
     );
   }
 
@@ -534,10 +374,14 @@ export default function Play() {
 
       <div className="layout-2col">
         <div className="board-col">
-          <div className={`player-bar top ${!turnIsUser && phase === 'playing' ? 'active' : ''}`}>
-            <span className="pb-name">{youOnBottom ? `${bot.emoji} ${bot.name}` : '🧑 Selim'} {youOnBottom && thinking && <span className="thinking-dots"><span>·</span><span>·</span><span>·</span></span>}</span>
-            {showClocks && <span className={`clock ${(youOnBottom ? oppClock : myClock) < 20e3 ? 'danger' : ''}`}>{fmtClock(youOnBottom ? oppClock : myClock)}</span>}
-          </div>
+          <PlayerBar
+            position="top"
+            name={youOnBottom ? `${bot.emoji} ${bot.name}` : '🧑 Selim'}
+            isThinking={youOnBottom && thinking}
+            active={!turnIsUser && phase === 'playing'}
+            showClock={showClocks}
+            clockMs={youOnBottom ? oppClock : myClock}
+          />
 
           <div className="board-with-eval">
             {evalBarPlay && evalCp != null && <EvalBar cp={evalCp} flipped={orientation === 'black'} />}
@@ -556,10 +400,14 @@ export default function Play() {
             </div>
           </div>
 
-          <div className={`player-bar bottom ${turnIsUser ? 'active' : ''}`}>
-            <span className="pb-name">{youOnBottom ? '🧑 Selim' : `${bot.emoji} ${bot.name}`} {!youOnBottom && thinking && <span className="thinking-dots"><span>·</span><span>·</span><span>·</span></span>}</span>
-            {showClocks && <span className={`clock ${(youOnBottom ? myClock : oppClock) < 20e3 ? 'danger' : ''}`}>{fmtClock(youOnBottom ? myClock : oppClock)}</span>}
-          </div>
+          <PlayerBar
+            position="bottom"
+            name={youOnBottom ? '🧑 Selim' : `${bot.emoji} ${bot.name}`}
+            isThinking={!youOnBottom && thinking}
+            active={turnIsUser}
+            showClock={showClocks}
+            clockMs={youOnBottom ? myClock : oppClock}
+          />
 
           <div className="btn-row" style={{ justifyContent: 'center' }}>
             <button className="btn" onClick={() => setFlipped(!flipped)}>⇅ Flip</button>
@@ -576,18 +424,12 @@ export default function Play() {
         </div>
 
         <div className="side-col">
-          {result && (
-            <div className={`gameover-card ${result.outcome === 'w' ? 'win' : result.outcome === 'l' ? 'loss' : 'draw'}`}>
-              <div className="go-title">
-                {result.outcome === 'w' ? '🏆 You won!' : result.outcome === 'l' ? '💀 You lost' : '🤝 Draw'}
-              </div>
-              <div className="go-reason">{result.reason}{hintsUsed > 0 ? ` · ${hintsUsed} hint${hintsUsed > 1 ? 's' : ''} used` : ''}</div>
-              <div className="btn-row">
-                {!gameRef.current.__startFen && <button className="btn primary" onClick={() => requestAnalysis(buildPgn(), userColor)}>⚡ Game Review</button>}
-                <button className="btn" onClick={() => { navigator.clipboard && navigator.clipboard.writeText(buildPgn()); }}>📋 Copy PGN</button>
-              </div>
-            </div>
-          )}
+          <GameOverCard
+            result={result} hintsUsed={hintsUsed}
+            canReview={!gameRef.current.__startFen}
+            onReview={() => requestAnalysis(buildPgn(), userColor)}
+            onCopyPgn={() => { navigator.clipboard && navigator.clipboard.writeText(buildPgn()); }}
+          />
 
           {drawMsg && <div className="banner coach">{drawMsg}</div>}
 

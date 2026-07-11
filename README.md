@@ -1,9 +1,14 @@
-# ChessLab — Training Suite (v21)
+# ChessLab — Training Suite (v22)
 
 ## Parity benchmarking (chess.com behavioral parity)
-- Corpus file: `/home/runner/work/chesslab/chesslab/benchmark/corpus.json`
-- Run benchmark gate: `npm run test:parity`
-- Generate JSON report: `npm run benchmark:review`
+- Corpus: `benchmark/corpus.json` — real games with their real chess.com Game Review outputs (accuracy, rating, tag counts) and tolerances.
+- `npm run test:parity` validates the corpus (PGN legality + schema) and, when `benchmark/last-report.json` exists, gates those real numbers against tolerances.
+- The measurement itself must run **in the app** (the review pipeline is WASM-Stockfish in a Web Worker — it cannot run under plain node): analyze the corpus PGN in the Game Analyzer, record `{ id, actual: { accuracy, rating, counts } }` into `benchmark/last-report.json`.
+- Classification thresholds live in `src/parityConfig.js` and are the published bins verified against real Game Reviews — change them only with a corpus run proving the change helps.
+
+## v22 — parity harness repaired + file-split refactor begins
+- **Audited & repaired the auto-generated parity PR (#1)**: kept the good ideas (real-game corpus, config indirection, WDL parsing, metric gating), fixed what was broken — the benchmark ran the *wrong analyzer* with a hardcoded CI-only path (never executable locally, never wired into CI), an "ambiguity guardrail" that was mathematically unreachable dead code, and threshold/curve changes that had never been measured. Classification is back on the verified baseline; WDL win% is plumbed but behind a `useWdl` flag until a corpus run proves it. The short-game movetime boost was kept.
+- **Play.jsx split** (624 → ~470 lines + focused modules): `hooks/useGameClock.js` (ticking/switch/flag/persistence snapshot), `hooks/useBotReply.js` (book-vs-engine move choice), `components/play/` (SetupScreen, PlayerBar, GameOverCard, ChecklistAid). Zero behavior change, verified live.
 
 ## v21 — content expansion (roadmap phase 8)
 - **Puzzle difficulty tiers**: Beginner/Club/Advanced/Master chips in Tactics → Practice, backed by the existing rating estimator. A **🎲 Next in tier** button picks a random puzzle from the tier while avoiding the last 8 you've seen (anti-repetition ring buffer) — falls back gracefully if a tier is small.

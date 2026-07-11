@@ -79,7 +79,7 @@ export async function analyzeWithStockfish(pgn, color, { movetime = 300, onProgr
   const pool = engine ? [engine] : await getStockfishPool(3);
   const sf = pool[0];
   const cfg = PARITY_CONFIG.analysis;
-  const adaptiveMt = Math.max(movetime, history.length <= 24 ? Math.round(movetime * 1.35) : movetime);
+  const adaptiveMt = history.length <= cfg.shortGameMaxPly ? Math.round(movetime * cfg.shortGameBoost) : movetime;
 
   const sim = new Chess();
   const positions = [sim.fen()];

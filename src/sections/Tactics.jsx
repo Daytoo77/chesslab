@@ -5,6 +5,7 @@ import { PUZZLES } from '../data/puzzles.js';
 import { useStats, dayKey } from '../store.js';
 import { useUi } from '../settings.js';
 import { MOTIF_PUZZLE_HINT } from '../motifs.js';
+import { TIERS, filterByTier, pickNext } from '../puzzleSelect.js';
 import { playForMove, sounds } from '../sounds.js';
 
 const strip = (s) => s.replace(/[+#!?]/g, '');
@@ -24,6 +25,7 @@ export default function Tactics() {
   const {
     solvedToday, todayKey, streak, rushBest, puzzleRating, myPuzzles, motifStats, woodpecker,
     solvePuzzle, failPuzzle, rushDone, ratePuzzle, recordMotif, removeMyPuzzle, woodpeckerDone,
+    recentPuzzleIds, practiceTier, noteShownPuzzle, setPracticeTier,
   } = useStats();
 
   const [mode, setMode] = useState('daily'); // daily | practice | rush | wood | mine
@@ -52,7 +54,7 @@ export default function Tactics() {
   const woodStart = useRef(0);
   const [woodNow, setWoodNow] = useState(0);
 
-  const source = mode === 'mine' ? myPuzzles : PUZZLES;
+  const source = mode === 'mine' ? myPuzzles : mode === 'practice' ? filterByTier(PUZZLES, puzzleElo, practiceTier) : PUZZLES;
   const puzzle = source[Math.min(pIdx, Math.max(0, source.length - 1))];
   const loadedFor = useRef(null);
   if (puzzle && loadedFor.current !== puzzle.id) {
@@ -71,6 +73,11 @@ export default function Tactics() {
     failedAttempt.current = false;
     setFen(null); setStep(0); setStatus('playing'); setWrong(false); setHint(false); setLastMove(null);
   }
+
+  // tier filter reshuffles indices under the practice list — snap back to its start
+  useEffect(() => {
+    if (mode === 'practice') selectPuzzle(0);
+  }, [practiceTier]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ----- analyzer/queue bridge: arrive preloaded on the right drill -----
   const tacticsRequest = useUi((u) => u.tacticsRequest);
@@ -276,14 +283,33 @@ export default function Tactics() {
       </div>
 
       {mode === 'practice' && (
-        <div style={{ marginBottom: 18, display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(210px,1fr))', gap: 8 }}>
-          {PUZZLES.map((p, i) => (
-            <button key={p.id} className={`select-card ${pIdx === i ? 'active' : ''}`} onClick={() => selectPuzzle(i)}>
-              <div className="t">{p.title}</div>
-              <div className="d">{p.motif} · ~{puzzleElo(p)}{motifStats[p.motif] ? ` · ${Math.round((100 * motifStats[p.motif].solved) / motifStats[p.motif].tries)}% réussite motif` : ''}</div>
-            </button>
-          ))}
-        </div>
+        <>
+          <div className="btn-row" style={{ marginBottom: 10, marginTop: 0 }}>
+            <span className="small muted" style={{ marginRight: 2 }}>Difficulty:</span>
+            <button className={`chip ${practiceTier === 'all' ? 'gold-chip' : ''}`} style={{ cursor: 'pointer' }} onClick={() => setPracticeTier('all')}>All</button>
+            {TIERS.map((t) => (
+              <button key={t.id} className={`chip ${practiceTier === t.id ? 'gold-chip' : ''}`} style={{ cursor: 'pointer' }} onClick={() => setPracticeTier(t.id)}>{t.label}</button>
+            ))}
+            <button className="btn btn-mini" style={{ marginLeft: 'auto' }}
+              disabled={!source.length}
+              onClick={() => {
+                const idx = pickNext(source, recentPuzzleIds);
+                if (idx >= 0) { noteShownPuzzle(source[idx].id); selectPuzzle(idx); }
+              }}>🎲 Next in tier</button>
+          </div>
+          {!source.length ? (
+            <p className="small muted">No puzzles in this tier yet — try a wider difficulty.</p>
+          ) : (
+            <div style={{ marginBottom: 18, display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(210px,1fr))', gap: 8 }}>
+              {source.map((p, i) => (
+                <button key={p.id} className={`select-card ${pIdx === i ? 'active' : ''}`} onClick={() => selectPuzzle(i)}>
+                  <div className="t">{p.title}</div>
+                  <div className="d">{p.motif} · ~{puzzleElo(p)}{motifStats[p.motif] ? ` · ${Math.round((100 * motifStats[p.motif].solved) / motifStats[p.motif].tries)}% réussite motif` : ''}</div>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {mode === 'mine' && myPuzzles.length === 0 && (

@@ -1,4 +1,12 @@
-# ChessLab — Training Suite (v20)
+# ChessLab — Training Suite (v21)
+
+## v21 — content expansion (roadmap phase 8)
+- **Puzzle difficulty tiers**: Beginner/Club/Advanced/Master chips in Tactics → Practice, backed by the existing rating estimator. A **🎲 Next in tier** button picks a random puzzle from the tier while avoiding the last 8 you've seen (anti-repetition ring buffer) — falls back gracefully if a tier is small.
+- **Endgame curriculum path**: the 5 drills are now grouped **Basic → Practical → Advanced**, with a **📍 Next up** banner that always points at the first drill you haven't cleared yet in that order — a real progression instead of a flat list. (No new endgame positions invented — just organizing what was already validated.)
+- **Opening trap notes**: a **⚠️ Common traps** panel surfaces the punisher/refutation lines already in your repertoire (e.g. "Punishing 3...Nxe4?!", the Qh5 refutation) right above the full line list, so the "know this or lose a piece" moments are one click away instead of buried alphabetically.
+- 14 new tests (46 total, all green) for the tier/anti-repetition picker and the curriculum/trap-finder logic.
+
+## v20 — session mode, backups, visual controls, mobile polish
 
 ## v20 — session mode, backups, visual controls, mobile polish (phases 3, 5, 6, 7)
 - **⏱ Session mode** (Training Plan): start a guided 15/30/45-minute block — tactics → game review → openings → endgames, pro-rated. Live progress bar, "you are here" segment with one-click jump, and the time is credited to your weekly study plan automatically when you finish (or end early — partial credit). Survives reloads: the session is persisted, so closing the tab doesn't lose it.

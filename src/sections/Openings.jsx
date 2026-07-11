@@ -3,6 +3,7 @@ import { Chess } from 'chess.js';
 import Board from '../components/Board.jsx';
 import CoachChat from '../components/CoachChat.jsx';
 import { buildOpeningContext } from '../coach.js';
+import { findTrapLines } from '../curriculum.js';
 import { OPENINGS } from '../data/openings.js';
 import { mergeOpenings } from '../data/openings2.js';
 import { useStats, lineDue, srsLabel } from '../store.js';
@@ -377,22 +378,40 @@ export default function Openings() {
             </div>
 
             {panelTab === 'lines' && (
-              <div className="panel">
-                <h3>{opening.name} — lines</h3>
-                <div className="card-list">
-                  {opening.lines.map((l) => (
-                    <button key={l.id} className={`select-card ${l.id === lineId ? 'active' : ''}`} onClick={() => pickLine(l.id)}>
-                      <div className="t">
-                        {l.name} {linesStudied[l.id] ? '✓' : ''}
+              <>
+                {(() => {
+                  const traps = findTrapLines(opening.lines);
+                  if (!traps.length) return null;
+                  return (
+                    <div className="panel" style={{ marginBottom: 14, borderColor: 'rgba(248,113,113,0.35)' }}>
+                      <h3 style={{ color: 'var(--bad)' }}>⚠️ Common traps in this opening</h3>
+                      <div className="card-list">
+                        {traps.map((l) => (
+                          <button key={l.id} className={`select-card ${l.id === lineId ? 'active' : ''}`} onClick={() => pickLine(l.id)}>
+                            <div className="t">{l.name}</div>
+                          </button>
+                        ))}
                       </div>
-                      <div className="d">
-                        <span className={`chip ${lineDue(srs, l.id) ? 'red' : 'green'}`} style={{ marginRight: 6 }}>{srsLabel(srs, l.id)}</span>
-                        {quizBest[l.id] != null && <span className="chip green">quiz {quizBest[l.id]}%</span>}
-                      </div>
-                    </button>
-                  ))}
+                    </div>
+                  );
+                })()}
+                <div className="panel">
+                  <h3>{opening.name} — lines</h3>
+                  <div className="card-list">
+                    {opening.lines.map((l) => (
+                      <button key={l.id} className={`select-card ${l.id === lineId ? 'active' : ''}`} onClick={() => pickLine(l.id)}>
+                        <div className="t">
+                          {l.name} {linesStudied[l.id] ? '✓' : ''}
+                        </div>
+                        <div className="d">
+                          <span className={`chip ${lineDue(srs, l.id) ? 'red' : 'green'}`} style={{ marginRight: 6 }}>{srsLabel(srs, l.id)}</span>
+                          {quizBest[l.id] != null && <span className="chip green">quiz {quizBest[l.id]}%</span>}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
             {panelTab === 'moves' && mode === 'study' && (

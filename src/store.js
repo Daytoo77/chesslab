@@ -33,6 +33,8 @@ const initial = {
   puzzleRatingHistory: [], // recent ratings, for the dashboard sparkline
   myPuzzles: [],     // blunders from analyzed games -> personal puzzles { id, fen, solution, motif, date }
   motifStats: {},    // motif -> { tries, solved } — the weakness radar
+  recentPuzzleIds: [], // ring buffer of recently-shown practice puzzle ids (anti-repetition)
+  practiceTier: 'all', // 'all' | beginner | club | advanced | master
   woodpecker: { cycles: [] }, // [{ ms, errors, date }] — same set, faster every cycle
   savedGame: null,   // in-progress bot game (resume after closing the app)
   // --- Training plan (the structured improvement program) ---
@@ -141,6 +143,11 @@ export const useStats = create(
 
       analyzeDone: () => set((s) => ({ gamesAnalyzed: s.gamesAnalyzed + 1, lastAnalyzeDay: dayKey() })),
       drillDone: (id) => set((s) => ({ drillsDone: { ...s.drillsDone, [id]: (s.drillsDone[id] || 0) + 1 } })),
+      noteShownPuzzle: (id) => set((s) => {
+        const next = [...s.recentPuzzleIds, id];
+        return { recentPuzzleIds: next.length > 8 ? next.slice(next.length - 8) : next };
+      }),
+      setPracticeTier: (tierId) => set({ practiceTier: tierId }),
 
       // --- Training plan ---
       logStudy: (cat, mins) =>

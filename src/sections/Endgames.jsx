@@ -3,6 +3,7 @@ import { Chess } from 'chess.js';
 import Board from '../components/Board.jsx';
 import { getPlayEngine } from '../stockfish.js';
 import { DRILLS } from '../data/endgames.js';
+import { groupByStage, nextDrill } from '../curriculum.js';
 import { oppositionInfo, pieceCount, MATE } from '../engine.js';
 import { coachMove } from '../playEngine.js';
 import { probeTablebase } from '../tablebase.js';
@@ -172,16 +173,30 @@ export default function Endgames() {
         </div>
 
         <div className="side-col">
+          {(() => {
+            const next = nextDrill(DRILLS, drillsDone);
+            return next && next.id !== drillId ? (
+              <div className="banner gold big">
+                📍 <b>Next up: {next.name}</b> — {next.category}, {next.goal === 'win' ? 'win it' : 'hold the draw'}.
+                <div className="btn-row"><button className="btn primary btn-mini" onClick={() => loadDrill(next.id)}>Start →</button></div>
+              </div>
+            ) : null;
+          })()}
           <div className="panel">
-            <h3>Drills</h3>
-            <div className="card-list">
-              {DRILLS.map((d) => (
-                <button key={d.id} className={`select-card ${d.id === drillId ? 'active' : ''}`} onClick={() => loadDrill(d.id)}>
-                  <div className="t">{d.name} {drillsDone[d.id] ? `✓×${drillsDone[d.id]}` : ''}</div>
-                  <div className="d">{d.category} · {d.goal === 'win' ? 'win it' : 'hold the draw'} · randomized</div>
-                </button>
-              ))}
-            </div>
+            <h3>Curriculum</h3>
+            {groupByStage(DRILLS).map((g) => (
+              <div key={g.stage} style={{ marginBottom: 10 }}>
+                <div className="small muted" style={{ fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', margin: '8px 0 4px' }}>{g.label}</div>
+                <div className="card-list">
+                  {g.drills.map((d) => (
+                    <button key={d.id} className={`select-card ${d.id === drillId ? 'active' : ''}`} onClick={() => loadDrill(d.id)}>
+                      <div className="t">{d.name} {drillsDone[d.id] ? `✓×${drillsDone[d.id]}` : ''}</div>
+                      <div className="d">{d.category} · {d.goal === 'win' ? 'win it' : 'hold the draw'} · randomized</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className={`banner big ${coach.kind === 'ok' ? 'ok' : coach.kind === 'err' ? 'err' : 'coach'}`}>

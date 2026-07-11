@@ -39,6 +39,7 @@ const maybeMirror = (fen, side, allowMirror) => {
 export const DRILLS = [
   {
     id: 'kp-escort',
+    stage: 'basic',
     name: 'K+P: Escort & Opposition',
     category: 'King & Pawn',
     goal: 'win',
@@ -56,6 +57,7 @@ export const DRILLS = [
   },
   {
     id: 'kp-rookpawn',
+    stage: 'basic',
     name: 'K+P: The Rook-Pawn Fortress (defend)',
     category: 'King & Pawn',
     goal: 'draw',
@@ -73,6 +75,7 @@ export const DRILLS = [
   },
   {
     id: 'kp-square',
+    stage: 'basic',
     name: 'Rule of the Square: Catch the Pawn',
     category: 'King & Pawn',
     goal: 'draw',
@@ -92,6 +95,7 @@ export const DRILLS = [
   },
   {
     id: 'rook-lucena',
+    stage: 'practical',
     name: 'Lucena: Build the Bridge',
     category: 'Rook Endings',
     goal: 'win',
@@ -112,6 +116,7 @@ export const DRILLS = [
   },
   {
     id: 'rook-philidor',
+    stage: 'practical',
     name: 'Philidor: The Third-Rank Defense',
     category: 'Rook Endings',
     goal: 'draw',

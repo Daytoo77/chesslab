@@ -24,8 +24,8 @@ const unicodePieces = (() => {
   return o;
 })();
 
-const DOT = { background: 'radial-gradient(circle, rgba(176, 125, 255,0.55) 22%, transparent 24%)' };
-const RING = { background: 'radial-gradient(circle, transparent 56%, rgba(176, 125, 255,0.6) 60%, rgba(176, 125, 255,0.6) 72%, transparent 76%)' };
+const DOT = { background: 'radial-gradient(circle, rgba(99, 102, 241,0.55) 22%, transparent 24%)' };
+const RING = { background: 'radial-gradient(circle, transparent 56%, rgba(99, 102, 241,0.6) 60%, rgba(99, 102, 241,0.6) 72%, transparent 76%)' };
 // pulsing red glow while the king is in check (keyframes live in index.css)
 const CHECK = {
   background: 'radial-gradient(circle, rgba(224,80,80,0.85) 18%, rgba(224,80,80,0.45) 48%, transparent 72%)',
@@ -74,12 +74,12 @@ export default function Board({ fen, onDrop, orientation = 'white', lastMove, ar
     // elegant glow — soft inner bloom on the origin, brighter ring + bloom on
     // the destination; alpha scales with the highlight-intensity setting
     squareStyles[lastMove.from] = {
-      backgroundColor: `rgba(176, 125, 255,${Math.min(1, 0.32 * hlF)})`,
-      boxShadow: `inset 0 0 14px rgba(212, 184, 255,${Math.min(1, 0.28 * hlF)})`,
+      backgroundColor: `rgba(99, 102, 241,${Math.min(1, 0.32 * hlF)})`,
+      boxShadow: `inset 0 0 14px rgba(165, 180, 252,${Math.min(1, 0.28 * hlF)})`,
     };
     squareStyles[lastMove.to] = {
-      backgroundColor: `rgba(176, 125, 255,${Math.min(1, 0.45 * hlF)})`,
-      boxShadow: `inset 0 0 0 2px rgba(212, 184, 255,${Math.min(1, 0.55 * hlF)}), inset 0 0 20px rgba(212, 184, 255,${Math.min(1, 0.35 * hlF)})`,
+      backgroundColor: `rgba(99, 102, 241,${Math.min(1, 0.45 * hlF)})`,
+      boxShadow: `inset 0 0 0 2px rgba(165, 180, 252,${Math.min(1, 0.55 * hlF)}), inset 0 0 20px rgba(165, 180, 252,${Math.min(1, 0.35 * hlF)})`,
     };
   }
   if (premove) {
@@ -87,7 +87,7 @@ export default function Board({ fen, onDrop, orientation = 'white', lastMove, ar
     squareStyles[premove.to] = { ...(squareStyles[premove.to] || {}), ...PREMOVE };
   }
   if (checkSq) squareStyles[checkSq] = { ...(squareStyles[checkSq] || {}), ...CHECK };
-  if (hintFrom) squareStyles[hintFrom] = { ...(squareStyles[hintFrom] || {}), boxShadow: 'inset 0 0 0 3px rgba(176, 125, 255,0.85), inset 0 0 18px rgba(212, 184, 255,0.35)' };
+  if (hintFrom) squareStyles[hintFrom] = { ...(squareStyles[hintFrom] || {}), boxShadow: 'inset 0 0 0 3px rgba(99, 102, 241,0.85), inset 0 0 18px rgba(165, 180, 252,0.35)' };
   if (showLegal) for (const m of targets) squareStyles[m.to] = { ...(squareStyles[m.to] || {}), ...(m.captured ? RING : DOT) };
   for (const sq of marks) squareStyles[sq] = { ...(squareStyles[sq] || {}), ...MARK };
 
@@ -160,7 +160,7 @@ export default function Board({ fen, onDrop, orientation = 'white', lastMove, ar
         customSquareStyles={squareStyles}
         customArrows={arrows}
         onArrowsChange={onArrowsChange}
-        customArrowColor="rgba(176, 125, 255,0.85)"
+        customArrowColor="rgba(99, 102, 241,0.85)"
         customPieces={blindfold ? hiddenPieces : pieceSet === 'unicode' ? unicodePieces : undefined}
         customBoardStyle={{ borderRadius: 8 }}
         animationDuration={animMs}

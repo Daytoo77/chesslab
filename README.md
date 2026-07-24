@@ -1,4 +1,12 @@
-# ChessLab — Training Suite (v22)
+# ChessLab — Training Suite (v23)
+
+## v23 — "Cinema Slate" redesign (driven by the ui-ux-pro-max skill)
+- Ran the [ui-ux-pro-max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) design-intelligence skill against ChessLab's real profile (pro chess analysis tool). Its top match — **"Modern Dark (Cinema)"**: *best for developer tools, pro productivity apps, high-end gaming companion apps* — became the new system, with the persisted decision saved to `design-system/chesslab/MASTER.md`.
+- **Deep-slate surfaces + electric-indigo accent**: base `#0a0f1e`, slate cards `#131c31`, indigo `#6366f1` / `#a5b4fc`. Replaces the v16 purple identity across the whole app (tokens + every hardcoded board/graph/glow value).
+- **Frosted glassmorphism**: the sidebar, workspace tab bars, and every panel are now translucent slate with `backdrop-filter` blur over an ambient glow (reverts to solid surfaces in light mode).
+- **Cinematic ambient glow**: an indigo/teal aurora that slowly drifts behind the app (`prefers-reduced-motion` pins it still).
+- **`Expo.out` easing** (`cubic-bezier(0.16, 1, 0.3, 1)`) — the skill's signature cinematic motion curve — on all transitions.
+- Inter typography (already the app's lead font) kept; no webfont added — the app stays a fully-offline single file. 48 tests still green; SW → `chesslab-v25`.
 
 ## Parity benchmarking (chess.com behavioral parity)
 - Corpus: `benchmark/corpus.json` — real games with their real chess.com Game Review outputs (accuracy, rating, tag counts) and tolerances.

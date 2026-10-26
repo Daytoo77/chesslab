@@ -1,7 +1,7 @@
 // Central tuning config for Game Review analysis + classification.
 // The config-file indirection came from the parity PR (good structure);
-// the VALUES are the verified baseline: classification bins are the published
-// chess.com-style thresholds, empirically validated against Selim's real
+// the VALUES are the verified baseline: classification bins are win%-loss
+// thresholds, empirically validated against Selim's real reference
 // Game Review screenshots (3 games + Byrne-Fischer 1956). Do not change them
 // without an in-app corpus run (see benchmark/) proving the change helps.
 export const PARITY_CONFIG = {

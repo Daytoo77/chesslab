@@ -4,23 +4,21 @@ import Board from '../components/Board.jsx';
 import EvalBar from '../components/EvalBar.jsx';
 import ClassBadge from '../components/ClassBadge.jsx';
 import CoachChat from '../components/CoachChat.jsx';
-import { buildCoachContext } from '../coach.js';
+import {
+  analyzePgn, localToUnified, buildCoachContext, narrateGame, explainPosition, MOTIF_META,
+  winPct, ratingFromAccuracy, openingName, PARITY_CONFIG,
+} from '@chesslab/review-core';
 import { reviewExtras } from '../review.js';
-import { narrateGame, explainPosition } from '../narrate.js';
-import { MOTIF_META } from '../motifs.js';
 import { engineAnalyze } from '../engineClient.js';
-import { analyzeWithStockfish, localToUnified } from '../sfAnalysis.js';
 import { getStockfish } from '../stockfish.js';
+import { getReviewEngines } from '../stockfishAdapter.js';
 import { useBoardEngine } from '../useBoardEngine.js';
 import { useStats, dayKey } from '../store.js';
 import { useUi } from '../settings.js';
 import { coachMove } from '../playEngine.js';
-import { winPct, ratingFromAccuracy } from '../accuracy.js';
-import { openingName } from '../data/openingNames.js';
 import { fig } from '../figurine.js';
 import { fetchChessCom, fetchLichess } from '../gameImport.js';
 import { sounds, playClassified } from '../sounds.js';
-import { PARITY_CONFIG } from '../parityConfig.js';
 
 const SAMPLE_PGN = `[Event "Sample game"]
 [White "Selim"]
@@ -30,7 +28,7 @@ const SAMPLE_PGN = `[Event "Sample game"]
 8. Nh4 Nxe4 9. dxe4 Bxe4 10. Nf3 Qf6 11. Nbd2 Bxf3 12. Nxf3 Nc6 13. Rb1 O-O-O
 14. Bg5 Qg6 15. Bxd8 Rxd8 16. Qe2 Nd4 17. Nxd4 Bxd4 18. c3 Bb6 19. a4 Kb8 *`;
 
-// chess.com move-classification system: symbol, css class, display name.
+// Win-probability based move classification: symbol, css class, display name.
 const TAG_META = {
   brilliant: { label: '!!', cls: 'tag-brilliant', name: 'Brilliant' },
   great:     { label: '!',  cls: 'tag-great',     name: 'Great' },
@@ -199,13 +197,13 @@ export default function Analyzer() {
   async function run(pgnArg = pgn, colorArg = color) {
     setError(null); setResult(null); setBusy(true); setProgress(0); setActiveMistake(null); setGuessState({});
     try { const t = new Chess(); t.loadPgn(pgnArg); if (!t.history().length) throw new Error(); }
-    catch { setError('Could not read that PGN. Paste the full movetext (headers optional) from chess.com or lichess.'); setBusy(false); return; }
+    catch { setError('Could not read that PGN. Paste the full movetext (headers optional).'); setBusy(false); return; }
     let res = null;
     try {
       setPhase('Loading Stockfish…');
       await getStockfish();
       setPhase('Stockfish evaluating every position…');
-      res = await analyzeWithStockfish(pgnArg, colorArg, { movetime: QUALITY[quality], onProgress: setProgress });
+      res = await analyzePgn(pgnArg, colorArg, { movetime: QUALITY[quality], onProgress: setProgress, engine: await getReviewEngines(3) });
     } catch {
       try {
         setPhase('Offline — using the built-in coach engine…');

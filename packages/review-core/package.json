@@ -1,0 +1,22 @@
+{
+  "name": "@chesslab/review-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Engine-agnostic chess game review: win-probability based move classification, accuracy, motif tagging and coach context.",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "src"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "peerDependencies": {
+    "chess.js": "^1.0.0"
+  }
+}

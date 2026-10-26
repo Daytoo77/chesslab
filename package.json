@@ -2,15 +2,20 @@
   "name": "chess-trainer",
   "private": true,
   "version": "1.0.0",
+  "license": "GPL-3.0-or-later",
+  "workspaces": [
+    "packages/*"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test tests/*.test.mjs",
+    "test": "node --test tests/*.test.mjs packages/review-core/tests/*.test.mjs",
     "test:parity": "node scripts/reviewBenchmark.mjs"
   },
   "dependencies": {
+    "@chesslab/review-core": "0.1.0",
     "chess.js": "^1.0.0",
     "motion": "^12.42.2",
     "react": "^18.3.1",

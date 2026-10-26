@@ -5,7 +5,7 @@
 // as before, so move ordering and side effects are unchanged.
 import { useState } from 'react';
 import { botMove } from '../playEngine.js';
-import { bookContinuations } from '../data/openingNames.js';
+import { bookContinuations } from '@chesslab/review-core';
 
 export function useBotReply() {
   const [thinking, setThinking] = useState(false);

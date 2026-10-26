@@ -1,12 +1,14 @@
-// Single-pass game analysis with Stockfish: one evaluation per position gives
-// every move's grade for BOTH colors, accuracy %, ACPL and estimated rating.
+// Single-pass game analysis: one engine evaluation per position gives every
+// move's grade for BOTH colors, accuracy %, ACPL and estimated rating.
 // Consistent by construction: the eval that judges your move is the same one
 // that judges the position your opponent inherited.
+//
+// The engine is injected as an adapter (see index.js) — this module knows
+// nothing about Web Workers, UCI or how Stockfish is loaded.
 import { Chess } from 'chess.js';
-import { getStockfish, getStockfishPool } from './stockfish.js';
 import { calibratedWinPct, winPct, moveAccuracy, gameAccuracy, capsAccuracy, volatilityWeight, estimateElo, tagFromWinDrop, classifyMove } from './accuracy.js';
-import { bookContinuations } from './data/openingNames.js';
-import { VAL } from './engine.js';
+import { bookContinuations } from './openingBook.js';
+import { VAL } from './material.js';
 import { classifyMotifs, parseClocks, tallyMotifs } from './motifs.js';
 import { PARITY_CONFIG } from './parityConfig.js';
 
@@ -70,13 +72,16 @@ function explain(playedSan, best, missedMate, replyCapture) {
   return `${playedSan} loses ground. ${best.san} keeps the pieces coordinated and avoids the concession.`;
 }
 
-export async function analyzeWithStockfish(pgn, color, { movetime = 300, onProgress, engine } = {}) {
+// engine: one adapter, or an array of adapters (a pool). With a pool, engine k
+// evaluates positions k, k+n, k+2n… and engine 0 runs the deep re-check.
+export async function analyzePgn(pgn, color, { movetime = 300, onProgress, engine } = {}) {
   const full = new Chess();
   full.loadPgn(pgn); // throws on bad pgn
   const history = full.history({ verbose: true });
   if (!history.length) throw new Error('empty');
   const clocks = parseClocks(pgn); // per-ply remaining seconds, or null
-  const pool = engine ? [engine] : await getStockfishPool(3);
+  const pool = Array.isArray(engine) ? engine : [engine];
+  if (!pool.length || pool.some((e) => !e || typeof e.analyse !== 'function')) throw new Error('review-core: engine adapter with analyse(fen, opts) required');
   const sf = pool[0];
   const cfg = PARITY_CONFIG.analysis;
   const adaptiveMt = history.length <= cfg.shortGameMaxPly ? Math.round(movetime * cfg.shortGameBoost) : movetime;
@@ -92,12 +97,7 @@ export async function analyzeWithStockfish(pgn, color, { movetime = 300, onProgr
   let done = 0;
   await Promise.all(pool.map(async (eng, k) => {
     for (let i = k; i < positions.length; i += pool.length) {
-      let lines = [];
-      try { lines = await eng.analyzeMulti(positions[i], adaptiveMt, cfg.multipv); } catch { /* fallback below */ }
-      if (!lines.length) {
-        const r = await eng.analyze(positions[i], adaptiveMt);
-        lines = [{ cp: r.cp, mate: r.mate, pv: r.pv || (r.best ? [r.best] : []), depth: r.depth || 0, wdl: r.wdl || null }];
-      }
+      const lines = (await eng.analyse(positions[i], { multipv: cfg.multipv, movetime: adaptiveMt })) || [];
       const stm = positions[i].split(' ')[1];
       const best = lines[0] || { cp: 0, mate: null, pv: [], depth: 0 };
       const cpBest = lineCp(best);
@@ -167,16 +167,16 @@ export async function analyzeWithStockfish(pgn, color, { movetime = 300, onProgr
   // Re-verify brilliancies at higher depth. A speculative sac (Greek gift,
   // etc.) that only works if the opponent errs looks "best + sound" at shallow
   // depth but isn't — deep search finds the refutation and we demote it, the
-  // way chess.com does. Brilliants are rare, so the extra cost is tiny.
+  // Brilliants are rare, so the extra cost is tiny.
   const deepMt = Math.max(1100, movetime * 3);
   for (const r of records) {
     if (r.tag !== 'brilliant') continue;
     const i = r.index;
     try {
-      const [Li, Lj] = await Promise.all([
-        sf.analyzeMulti(positions[i], deepMt, 1),
-        sf.analyzeMulti(positions[i + 1], deepMt, 1),
-      ]);
+      const [Li, Lj] = (await Promise.all([
+        sf.analyse(positions[i], { multipv: 1, movetime: deepMt }),
+        sf.analyse(positions[i + 1], { multipv: 1, movetime: deepMt }),
+      ])).map((l) => l || []);
       const stmI = positions[i].split(' ')[1];
       const stmJ = positions[i + 1].split(' ')[1];
       const povR = (x) => (r.color === 'w' ? x : -x);

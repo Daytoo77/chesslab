@@ -3,7 +3,7 @@
 // missed a fork", "back-rank weakness"). Pure geometry over the FENs we already
 // have; no extra engine calls. Inspired by tintin's-chess-analysis motif tags.
 import { Chess } from 'chess.js';
-import { VAL } from './engine.js';
+import { VAL } from './material.js';
 
 // Friendly metadata for every motif — label, one-line coaching, chip colour
 // class (reuses the classification palette), icon. Shared by the analyzer

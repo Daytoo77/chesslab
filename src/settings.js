@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export const BOARD_THEMES = [
-  { id: 'classic', name: 'Green (chess.com)', light: '#ebecd0', dark: '#739552' },
+  { id: 'classic', name: 'Classic Green', light: '#ebecd0', dark: '#739552' },
   { id: 'midnight', name: 'Midnight', light: '#c6cddf', dark: '#3c4a6e' },
   { id: 'walnut', name: 'Walnut', light: '#f0d9b5', dark: '#b58863' },
   { id: 'ocean', name: 'Ocean', light: '#cfdbe6', dark: '#5b7d99' },
@@ -22,7 +22,7 @@ export const themeById = (id) => BOARD_THEMES.find((t) => t.id === id) || BOARD_
 export const useSettings = create(
   persist(
     (set) => ({
-      boardTheme: 'classic', // chess.com green by default
+      boardTheme: 'classic', // Classic Green by default
       appTheme: 'dark',      // dark | light
       pieceSet: 'classic',   // classic | unicode
       showLegal: true,       // legal-move dots on click/drag

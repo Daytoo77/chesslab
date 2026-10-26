@@ -8,7 +8,7 @@ import GameOverCard from '../components/play/GameOverCard.jsx';
 import ChecklistAid from '../components/play/ChecklistAid.jsx';
 import { BOTS } from '../data/bots.js';
 import { getStockfish, getPlayEngine } from '../stockfish.js';
-import { openingName } from '../data/openingNames.js';
+import { openingName } from '@chesslab/review-core';
 import { fig } from '../figurine.js';
 import { useStats } from '../store.js';
 import { useSettings, useUi } from '../settings.js';

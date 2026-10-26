@@ -58,7 +58,7 @@ export default function Vault({ openings }) {
       <div className="side-col">
         <div className="panel">
           <h3>📂 My games — personal opening tree</h3>
-          {!data && <p className="small muted">Two modes: with your username → YOUR stats per move (lichess/chess.com PGN archive). Username left empty → reference tree from any database (e.g. a ChessBase export: select games → right-click → Output → Text file → PGN). White-POV scores in reference mode.</p>}
+          {!data && <p className="small muted">Two modes: with your username → YOUR stats per move (your own PGN archive, from any site). Username left empty → reference tree from any database (e.g. a ChessBase export: select games → right-click → Output → Text file → PGN). White-POV scores in reference mode.</p>}
           {data && <p className="small muted">{data.games} games · {data.username} · first {10} moves indexed{data.skipped ? ` · ${data.skipped} skipped` : ''}</p>}
           <div className="btn-row" style={{ alignItems: 'center' }}>
             <input className="text-input" placeholder="Username — leave EMPTY for a reference database" value={username} onChange={(e) => setUsername(e.target.value)} />

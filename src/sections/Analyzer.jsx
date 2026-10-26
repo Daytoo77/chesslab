@@ -17,7 +17,7 @@ import { useStats, dayKey } from '../store.js';
 import { useUi } from '../settings.js';
 import { coachMove } from '../playEngine.js';
 import { fig } from '../figurine.js';
-import { fetchChessCom, fetchLichess } from '../gameImport.js';
+import { fetchRecentGames } from '../gameImport.js';
 import { sounds, playClassified } from '../sounds.js';
 
 const SAMPLE_PGN = `[Event "Sample game"]
@@ -188,7 +188,6 @@ export default function Analyzer() {
   const [posExplain, setPosExplain] = useState(null); // on-demand "explain this position"
 
   // online import
-  const [importSrc, setImportSrc] = useState('chess.com');
   const [importUser, setImportUser] = useState('');
   const [importBusy, setImportBusy] = useState(false);
   const [importErr, setImportErr] = useState(null);
@@ -244,7 +243,7 @@ export default function Analyzer() {
   async function doImport() {
     setImportBusy(true); setImportErr(null); setImportedGames(null);
     try {
-      const games = importSrc === 'chess.com' ? await fetchChessCom(importUser) : await fetchLichess(importUser);
+      const games = await fetchRecentGames(importUser);
       setImportedGames(games);
     } catch (e) {
       setImportErr(e.message || 'Import failed — are you online?');
@@ -487,8 +486,6 @@ export default function Analyzer() {
           <div className="panel" style={{ flex: 1, minWidth: 320, maxWidth: 600 }}>
             <h3>…or fetch your latest games</h3>
             <div className="btn-row" style={{ alignItems: 'center' }}>
-              <button className={`btn ${importSrc === 'chess.com' ? 'primary' : ''}`} onClick={() => setImportSrc('chess.com')}>♟ chess.com</button>
-              <button className={`btn ${importSrc === 'lichess' ? 'primary' : ''}`} onClick={() => setImportSrc('lichess')}>🐴 lichess</button>
               <input className="text-input" placeholder="username" value={importUser}
                 onChange={(e) => setImportUser(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && importUser.trim()) doImport(); }} />
@@ -508,7 +505,7 @@ export default function Analyzer() {
                 ))}
               </div>
             )}
-            {!importedGames && !importErr && <p className="small muted" style={{ marginTop: 10 }}>Pulls your most recent games straight from the public chess.com / lichess API — click one to analyze it. (Online only.)</p>}
+            {!importedGames && !importErr && <p className="small muted" style={{ marginTop: 10 }}>Enter your username: ChessLab checks the public online-chess APIs and pulls your most recent games — click one to analyze it. (Online only.)</p>}
           </div>
         </div>
       )}

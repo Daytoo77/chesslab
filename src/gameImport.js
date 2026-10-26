@@ -1,4 +1,4 @@
-// Fetch recent games from chess.com / lichess public APIs (both send CORS headers).
+// Fetch recent games from public online-chess APIs (both send CORS headers).
 // Returns [{ id, white, black, result, speed, date, pgn, userColor }] newest first.
 
 function monthUrl(user, d) {
@@ -34,7 +34,7 @@ export async function fetchChessCom(username, max = 15) {
     if (out.length >= max) break;
   }
   out.sort((a, b) => b.ts - a.ts);
-  if (!out.length) throw new Error('No games found — check the username (chess.com).');
+  if (!out.length) throw new Error('No games found — check the username.');
   return out.slice(0, max);
 }
 
@@ -69,4 +69,14 @@ export async function fetchLichess(username, max = 15) {
   }
   if (!out.length) throw new Error('No games found for that lichess user.');
   return out;
+}
+
+// Username only, no site picker: ask every source in parallel and merge what
+// comes back, newest first. A source that fails or has no such user is skipped.
+export async function fetchRecentGames(username, max = 15) {
+  const settled = await Promise.allSettled([fetchChessCom(username, max), fetchLichess(username, max)]);
+  const out = settled.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+  if (!out.length) throw new Error("No recent games found for that username — check the spelling and that you're online.");
+  out.sort((a, b) => b.ts - a.ts);
+  return out.slice(0, max);
 }

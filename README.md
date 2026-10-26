@@ -1,4 +1,11 @@
-# ChessLab — Training Suite (v23)
+# ChessLab — Training Suite (v24)
+
+ChessLab is a personal chess training app (React + Vite) with an offline game review: Stockfish 17.1 lite runs as WASM in a Web Worker, and every move is graded by a **win-probability based classifier** (Brilliant, Great, Best, Excellent, Good, Book, Inaccuracy, Miss, Mistake, Blunder) with per-side accuracy, a game rating and mistake-motif tagging. The review logic lives in [`packages/review-core`](packages/review-core) — engine-agnostic, plain-JSON output.
+
+## v24 — review-core package + licensing
+- **`packages/review-core`** (`@chesslab/review-core`, npm workspace): classification, accuracy, MultiPV analysis + brilliant re-verification, motif tagging, commentary, thresholds and coach context builders. `reviewGame(pgn, { engine, color })` returns a plain-JSON review; `engine` is a small adapter — `analyse(fen, { multipv, movetime }) → lines` — so the core knows nothing about Web Workers or Stockfish loading. The app's Stockfish worker pool is one adapter (`src/stockfishAdapter.js`).
+- **Behaviour locked by a golden test**: the pre-extraction analyzer's output for 6 game/colour/pool cases, recorded with a deterministic fake engine, must be reproduced exactly.
+- **Licensed GPL-3.0-or-later** (see [License](#license)). The default green board theme is now named **Classic Green**. SW → `chesslab-v26`.
 
 ## v23 — "Cinema Slate" redesign (driven by the ui-ux-pro-max skill)
 - Ran the [ui-ux-pro-max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) design-intelligence skill against ChessLab's real profile (pro chess analysis tool). Its top match — **"Modern Dark (Cinema)"**: *best for developer tools, pro productivity apps, high-end gaming companion apps* — became the new system, with the persisted decision saved to `design-system/chesslab/MASTER.md`.
@@ -8,11 +15,11 @@
 - **`Expo.out` easing** (`cubic-bezier(0.16, 1, 0.3, 1)`) — the skill's signature cinematic motion curve — on all transitions.
 - Inter typography (already the app's lead font) kept; no webfont added — the app stays a fully-offline single file. 48 tests still green; SW → `chesslab-v25`.
 
-## Parity benchmarking (chess.com behavioral parity)
-- Corpus: `benchmark/corpus.json` — real games with their real chess.com Game Review outputs (accuracy, rating, tag counts) and tolerances.
+## Review benchmarking
+- Corpus: `benchmark/corpus.json` — real games with reference Game Review outputs (accuracy, rating, tag counts) and tolerances.
 - `npm run test:parity` validates the corpus (PGN legality + schema) and, when `benchmark/last-report.json` exists, gates those real numbers against tolerances.
 - The measurement itself must run **in the app** (the review pipeline is WASM-Stockfish in a Web Worker — it cannot run under plain node): analyze the corpus PGN in the Game Analyzer, record `{ id, actual: { accuracy, rating, counts } }` into `benchmark/last-report.json`.
-- Classification thresholds live in `src/parityConfig.js` and are the published bins verified against real Game Reviews — change them only with a corpus run proving the change helps.
+- Classification thresholds live in `packages/review-core/src/parityConfig.js` and are the published bins verified against real Game Reviews — change them only with a corpus run proving the change helps.
 
 ## v22 — parity harness repaired + file-split refactor begins
 - **Audited & repaired the auto-generated parity PR (#1)**: kept the good ideas (real-game corpus, config indirection, WDL parsing, metric gating), fixed what was broken — the benchmark ran the *wrong analyzer* with a hardcoded CI-only path (never executable locally, never wired into CI), an "ambiguity guardrail" that was mathematically unreachable dead code, and threshold/curve changes that had never been measured. Classification is back on the verified baseline; WDL win% is plumbed but behind a `useWdl` flag until a corpus run proves it. The short-game movetime boost was kept.
@@ -222,3 +229,6 @@ Personal chess training app (React + Vite + chess.js + react-chessboard + zustan
 
 ## Validation
 All puzzles, opening lines and endgame templates are machine-checked (chess.js legality, real mates, material counts); K+P drill templates verified against an exhaustive KPK tablebase.
+
+## License
+ChessLab is free software, licensed under the **GNU General Public License v3.0 or later** — see [`LICENSE`](LICENSE). The app bundles **Stockfish 17.1** (WASM build), which is itself distributed under the GPLv3; its copyright notices are kept in the bundled engine files.

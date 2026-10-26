@@ -5,7 +5,7 @@ import { mergeOpenings } from '../data/openings2.js';
 import { DRILLS } from '../data/endgames.js';
 import { BOTS } from '../data/bots.js';
 import { useStats, dayKey, lineDue, weaknessTop, weaknessRecent } from '../store.js';
-import { MOTIF_META } from '../motifs.js';
+import { MOTIF_META } from '@chesslab/review-core';
 import { motifTrends } from '../queue.js';
 import { useUi } from '../settings.js';
 

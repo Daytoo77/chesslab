@@ -5,7 +5,7 @@
 // endgame essentials, opening principles, and "analyse your own games first".
 import React, { useEffect, useMemo, useState } from 'react';
 import { useStats, dayKey, weekKeys, weekStudy, weaknessTop, weaknessRecent, lineDue, STUDY_CATS } from '../store.js';
-import { MOTIF_META } from '../motifs.js';
+import { MOTIF_META } from '@chesslab/review-core';
 import { buildDailyQueue, buildSession, sessionProgress } from '../queue.js';
 import { OPENINGS } from '../data/openings.js';
 import { mergeOpenings } from '../data/openings2.js';

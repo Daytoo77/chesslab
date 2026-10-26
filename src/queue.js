@@ -1,7 +1,7 @@
 // The personal-coach loop, as pure functions (no store import — testable in
 // plain node). Combines SRS dues, weakness profile, daily habits and goals
 // into one scored "Do this now" queue, and computes per-motif trends.
-import { MOTIF_META } from './motifs.js';
+import { MOTIF_META } from '@chesslab/review-core';
 
 // state slices in, scored task list out (highest score = do first).
 export function buildDailyQueue({

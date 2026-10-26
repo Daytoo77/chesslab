@@ -1,5 +1,5 @@
-// Accuracy & rating estimation — win-percentage model (same family of
-// formulas Lichess publishes; chess.com's CAPS works on the same principle).
+// Accuracy & rating estimation — win-probability model (the same family of
+// formulas Lichess publishes).
 import { PARITY_CONFIG } from './parityConfig.js';
 
 // centipawns (side to move POV) -> win probability 0..100
@@ -34,15 +34,14 @@ export function moveAccuracy(wBefore, wAfter) {
 export function gameAccuracy(list) {
   if (!list.length) return null;
   const mean = list.reduce((a, b) => a + b, 0) / list.length;
-  // blend mean with harmonic mean so single disasters weigh in (chess.com-like feel)
+  // blend mean with harmonic mean so single disasters weigh in
   const harm = list.length / list.reduce((a, b) => a + 1 / Math.max(1, b), 0);
   return Math.round(((mean + harm) / 2) * 10) / 10;
 }
 
-// chess.com CAPS-style game accuracy: a volatility-weighted mean of per-move
-// accuracies blended with their harmonic mean. Moves made in sharp, swingy
-// phases count more — so one blunder in a critical moment tanks the score the
-// way it does on chess.com. items: [{ acc, weight }].
+// Game accuracy: a volatility-weighted mean of per-move accuracies blended
+// with their harmonic mean. Moves made in sharp, swingy phases count more — so
+// one blunder in a critical moment tanks the score. items: [{ acc, weight }].
 export function capsAccuracy(items) {
   if (!items.length) return null;
   const wSum = items.reduce((s, x) => s + x.weight, 0) || 1;
@@ -73,9 +72,9 @@ export function estimateElo(acpl) {
   return 250;
 }
 
-// chess.com-style "Game Rating": a per-game performance estimate. Derived from
-// accuracy (not ACPL — ACPL hands a clean 13-move mate a 2600 even between
-// beginners). Linear fit to chess.com's own numbers across sample games
+// "Game Rating": a per-game performance estimate. Derived from accuracy (not
+// ACPL — ACPL hands a clean 13-move mate a 2600 even between beginners).
+// Linear fit to reference review ratings across sample games
 // (88.7%→~1250, 71%→~900, 57%→~200, 56%→~100), clamped to a believable range.
 export function ratingFromAccuracy(acc) {
   if (acc == null) return null;
@@ -90,9 +89,9 @@ export function tagFromWinDrop(drop) {
   return 'blunder';
 }
 
-// chess.com-style move classification.
-// Bins follow chess.com's published "expected points lost" table, on the
-// win% scale (0-100): Best 0, Excellent <2, Good <5, Inaccuracy <10,
+// Win-probability based move classification.
+// Bins are "expected points lost" on the win% scale (0-100):
+// Best 0, Excellent <2, Good <5, Inaccuracy <10,
 // Mistake <20, Blunder >=20 — plus Brilliant / Great / Miss / Book / Forced.
 //
 // ctx:
@@ -129,23 +128,23 @@ export function classifyMove(ctx) {
   else if (winLoss < CFG.mistakeMax) base = 'mistake';
   else base = 'blunder';
 
-  // Brilliant (chess.com: "best OR near-best move, requires a material
-  // sacrifice, does not result in a losing position, not awarded if already
-  // completely winning"). Near-best = the move is best or within ~1.5% — the
-  // deep re-verification pass (sfAnalysis) confirms soundness afterwards.
+  // Brilliant: best OR near-best move, requires a material sacrifice, does
+  // not result in a losing position, not awarded if already completely
+  // winning. Near-best = the move is best or within ~1.5% — the deep
+  // re-verification pass (analysis.js) confirms soundness afterwards.
   if (sacInvest >= 150 && (isBest || winLoss < 1.5) && winAfter >= 50 && winAfter <= 97 && winBefore <= 97) {
     return 'brilliant';
   }
 
-  // Great (chess.com: "change the outcome — lost→equal, equal→winning — or the
-  // only good move"). Captured as: the best move, with every alternative clearly
+  // Great: changes the outcome — lost→equal, equal→winning — or is the only
+  // good move. Captured as: the best move, with every alternative clearly
   // worse, in a position that mattered.
   if (base === 'best' && secondWin != null && (winBefore - secondWin) >= 12 && winBefore > 8 && winBefore < 98) {
     return 'great';
   }
 
-  // Miss (chess.com: "missed opportunity to gain a WINNING position, resulting
-  // in an equal or worse outcome"). A clearly winning move was available
+  // Miss: a missed opportunity to gain a WINNING position, resulting in an
+  // equal or worse outcome. A clearly winning move was available
   // (winBefore high) and the move played drops to equal-or-worse — or a forced
   // mate was thrown away.
   if ((base === 'mistake' || base === 'blunder') && ((winBefore >= 65 && winAfter <= 52) || (mateForMover && !keptMate))) {
@@ -153,8 +152,8 @@ export function classifyMove(ctx) {
   }
 
   // Leniency in already-lost positions: you can't "blunder" what's gone — if
-  // you were already losing badly before the move, cap at mistake (chess.com
-  // does the same; the win% can't drop much more once you're near 0).
+  // you were already losing badly before the move, cap at mistake (the win%
+  // can't drop much more once you're near 0).
   if (base === 'blunder' && winBefore < 20) return 'mistake';
 
   return base;

@@ -4,7 +4,7 @@ import Board from '../components/Board.jsx';
 import { PUZZLES } from '../data/puzzles.js';
 import { useStats, dayKey } from '../store.js';
 import { useUi } from '../settings.js';
-import { MOTIF_PUZZLE_HINT } from '../motifs.js';
+import { MOTIF_PUZZLE_HINT } from '@chesslab/review-core';
 import { TIERS, filterByTier, pickNext } from '../puzzleSelect.js';
 import { playForMove, sounds } from '../sounds.js';
 

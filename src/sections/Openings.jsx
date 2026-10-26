@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import Board from '../components/Board.jsx';
 import CoachChat from '../components/CoachChat.jsx';
-import { buildOpeningContext } from '../coach.js';
+import { buildOpeningContext } from '@chesslab/review-core';
 import { findTrapLines } from '../curriculum.js';
 import { OPENINGS } from '../data/openings.js';
 import { mergeOpenings } from '../data/openings2.js';

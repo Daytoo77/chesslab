@@ -4,7 +4,7 @@
 // It never invents a move or an evaluation: every claim traces to real data.
 import { Chess } from 'chess.js';
 import { winPct } from './accuracy.js';
-import { VAL } from './engine.js';
+import { VAL } from './material.js';
 import { MOTIF_META } from './motifs.js';
 
 // short, true plan blurbs by opening family (text only — no lines invented)

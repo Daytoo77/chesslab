@@ -1,5 +1,5 @@
 import React from 'react';
-import { winPct } from '../accuracy.js';
+import { winPct } from '@chesslab/review-core';
 
 // Vertical evaluation bar. cp/mate are from WHITE's point of view.
 // flipped = black at the bottom.

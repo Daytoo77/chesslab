@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Icon from '../Icon.jsx';
+import { ChevronDown } from 'lucide-react';
 
 // In-game thinking aid — the every-move checklist from the Training Plan,
 // one tap away while you actually play (forcing moves first).
@@ -15,8 +17,8 @@ export default function ChecklistAid() {
   return (
     <div className="panel">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }} onClick={() => setOpen((o) => !o)}>
-        <h3 style={{ margin: 0 }}>✓ Blunder-check</h3>
-        <span className="muted">{open ? '▾' : '▸'}</span>
+        <h3 className="h-icon" style={{ margin: 0 }}><Icon name="check" size={14} /> Blunder-check</h3>
+        <ChevronDown size={18} className={`muted disclosure ${open ? 'open' : ''}`} aria-hidden="true" />
       </div>
       {open ? (
         <ul className="checklist tight" style={{ margin: '12px 0 4px' }}>

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import Board from '../components/Board.jsx';
+import Icon from '../components/Icon.jsx';
 import { buildTree, kvGet, kvSet, nodeAtPath, scorePct, repertoireMoveAt } from '../vault.js';
 
 export default function Vault({ openings }) {
@@ -50,14 +51,14 @@ export default function Vault({ openings }) {
       <div className="board-col">
         <Board fen={game.fen()} orientation={flipped ? 'black' : 'white'} lastMove={lastMove} draggable={false} />
         <div className="btn-row" style={{ justifyContent: 'center' }}>
-          <button className="btn" onClick={() => setFlipped(!flipped)}>⇅ Flip</button>
-          <button className="btn" disabled={!path.length} onClick={() => setPath(path.slice(0, -1))}>◀ Back</button>
-          <button className="btn" disabled={!path.length} onClick={() => setPath([])}>⏮ Start</button>
+          <button className="btn" onClick={() => setFlipped(!flipped)}><Icon name="flip" size={16} /> Flip</button>
+          <button className="btn" disabled={!path.length} onClick={() => setPath(path.slice(0, -1))}><Icon name="prev" size={16} /> Back</button>
+          <button className="btn" disabled={!path.length} onClick={() => setPath([])}><Icon name="first" size={16} /> Start</button>
         </div>
       </div>
       <div className="side-col">
         <div className="panel">
-          <h3>📂 My games — personal opening tree</h3>
+          <h3 className="h-icon"><Icon name="folder" size={14} /> My games — personal opening tree</h3>
           {!data && <p className="small muted">Two modes: with your username → YOUR stats per move (lichess/chess.com PGN archive). Username left empty → reference tree from any database (e.g. a ChessBase export: select games → right-click → Output → Text file → PGN). White-POV scores in reference mode.</p>}
           {data && <p className="small muted">{data.games} games · {data.username} · first {10} moves indexed{data.skipped ? ` · ${data.skipped} skipped` : ''}</p>}
           <div className="btn-row" style={{ alignItems: 'center' }}>
@@ -75,7 +76,7 @@ export default function Vault({ openings }) {
             <h3>{path.length ? path.map((s, i) => (i % 2 === 0 ? `${i / 2 + 1}.${s}` : s)).join(' ') : 'Starting position'} <span className="chip">{node.n} games · {scorePct(node)}%</span></h3>
             {rep && (
               <div className={`banner ${deviation ? 'gold' : 'coach'} small`} style={{ marginBottom: 8 }}>
-                📖 Your repertoire here: <b>{rep.san}</b> ({rep.opening} — {rep.line}){deviation ? ' — but in practice you mostly play differently. Worth a review!' : ''}
+                <Icon name="book" size={16} /> Your repertoire here: <b>{rep.san}</b> ({rep.opening} — {rep.line}){deviation ? ' — but in practice you mostly play differently. Worth a review!' : ''}
               </div>
             )}
             <div className="card-list">
@@ -84,8 +85,8 @@ export default function Vault({ openings }) {
                 return (
                   <button key={san} className="select-card" onClick={() => setPath([...path, san])}>
                     <div className="t" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>{san}{rep && rep.san.replace(/[+#]/g, '') === san.replace(/[+#]/g, '') ? ' 📖' : ''}</span>
-                      <span style={{ color: pct >= 55 ? 'var(--good)' : pct <= 45 ? 'var(--bad)' : 'var(--gold-soft)' }}>{pct}%</span>
+                      <span>{san}{rep && rep.san.replace(/[+#]/g, '') === san.replace(/[+#]/g, '') ? <Icon name="book" size={13} className="inline-icon" label="In your repertoire" /> : null}</span>
+                      <span style={{ color: pct >= 55 ? 'var(--good)' : pct <= 45 ? 'var(--bad)' : 'var(--accent-soft)' }}>{pct}%</span>
                     </div>
                     <div className="d">{ch.n} game{ch.n > 1 ? 's' : ''} · +{ch.w} ={ch.d} −{ch.l}</div>
                   </button>

@@ -50,11 +50,11 @@ const initial = {
 };
 
 export const STUDY_CATS = [
-  { id: 'play',     label: 'Play slow games', pct: 50, page: 'play',     icon: '♞', note: '15|10 or longer — no blitz/bullet.' },
-  { id: 'analysis', label: 'Analyse your games', pct: 20, page: 'analyzer', icon: '⚡', note: 'Your own games first, especially losses.' },
-  { id: 'tactics',  label: 'Tactics', pct: 15, page: 'tactics',  icon: '⚔', note: 'A variety of motifs, untimed.' },
-  { id: 'strategy', label: 'Strategy / middlegame', pct: 10, page: 'openings', icon: '♜', note: 'Plans, imbalances, a strategy book.' },
-  { id: 'endgames', label: 'Endgames', pct: 5,  page: 'endgames', icon: '♚', note: 'Opposition, zugzwang, key mating nets.' },
+  { id: 'play',     label: 'Play slow games', pct: 50, page: 'play',     icon: 'play', note: '15|10 or longer — no blitz/bullet.' },
+  { id: 'analysis', label: 'Analyse your games', pct: 20, page: 'analyzer', icon: 'analyzer', note: 'Your own games first, especially losses.' },
+  { id: 'tactics',  label: 'Tactics', pct: 15, page: 'tactics',  icon: 'tactics', note: 'A variety of motifs, untimed.' },
+  { id: 'strategy', label: 'Strategy / middlegame', pct: 10, page: 'openings', icon: 'openings', note: 'Plans, imbalances, a strategy book.' },
+  { id: 'endgames', label: 'Endgames', pct: 5,  page: 'endgames', icon: 'endgames', note: 'Opposition, zugzwang, key mating nets.' },
 ];
 const emptyDay = () => ({ play: 0, analysis: 0, tactics: 0, strategy: 0, endgames: 0 });
 

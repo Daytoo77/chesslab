@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import Board from '../components/Board.jsx';
+import Icon from '../components/Icon.jsx';
 import { getPlayEngine } from '../stockfish.js';
 import { DRILLS } from '../data/endgames.js';
 import { groupByStage, nextDrill } from '../curriculum.js';
@@ -50,7 +51,7 @@ export default function Endgames() {
     if (g.isCheckmate()) {
       const winner = g.turn() === 'w' ? 'b' : 'w';
       if (winner === userSide && drill.goal === 'win') {
-        setCoach({ kind: 'ok', text: 'Checkmate — drill complete. Run it again: the file will change, the technique won\'t. ✓' });
+        setCoach({ kind: 'ok', text: 'Checkmate — drill complete. Run it again: the file will change, the technique won\'t.' });
         sounds.success(); drillDone(drill.id); setDone(true);
       } else {
         setCoach({ kind: 'err', text: 'Checkmated. Reset and re-read the tips.' });
@@ -60,7 +61,7 @@ export default function Endgames() {
     }
     if (g.isDraw() || g.isStalemate()) {
       if (drill.goal === 'draw') {
-        setCoach({ kind: 'ok', text: `Draw secured (${g.isStalemate() ? 'stalemate' : 'drawn position'}) — exactly the goal. ✓` });
+        setCoach({ kind: 'ok', text: `Draw secured (${g.isStalemate() ? 'stalemate' : 'drawn position'}) — exactly the goal.` });
         sounds.success(); drillDone(drill.id); setDone(true);
       } else {
         setCoach({ kind: 'err', text: `Only a draw (${g.isStalemate() ? 'stalemate!' : 'repetition / insufficient material'}) — the win slipped.` });
@@ -78,11 +79,11 @@ export default function Endgames() {
     const oppWins = cat === 'win' || cat === 'cursed-win';
     const oppLoses = cat === 'loss' || cat === 'blessed-loss';
     if (drill.goal === 'win') {
-      if (oppLoses) return { kind: 'good', text: 'Tablebase: still winning ✓' };
+      if (oppLoses) return { kind: 'good', text: 'Tablebase: still winning' };
       if (cat === 'draw') return { kind: 'bad', text: 'Tablebase: the win is GONE — this position is a theoretical draw.' };
       return { kind: 'bad', text: 'Tablebase: you are losing now!' };
     } else {
-      if (cat === 'draw') return { kind: 'good', text: 'Tablebase: theoretical draw held ✓' };
+      if (cat === 'draw') return { kind: 'good', text: 'Tablebase: theoretical draw held' };
       if (oppWins) return { kind: 'bad', text: 'Tablebase: this is now LOST with best play.' };
       return { kind: 'good', text: 'Tablebase: you are even winning!' };
     }
@@ -138,11 +139,11 @@ export default function Endgames() {
       }
       if (drill.category === 'King & Pawn') {
         const opp = oppositionInfo(g.fen());
-        if (opp && opp.direct) msgs.push(opp.holder === userSide ? 'You hold the opposition. ✓' : 'Your opponent holds the opposition.');
+        if (opp && opp.direct) msgs.push(opp.holder === userSide ? 'You hold the opposition.' : 'Your opponent holds the opposition.');
       }
       // success condition: a held draw over 12 accurate moves
       if (!ended && drill.goal === 'draw' && nUser >= 12 && (!verdict || verdict.kind === 'good')) {
-        setCoach({ kind: 'ok', text: 'Twelve accurate defensive moves — the fortress holds. ✓ Try a new random position.' });
+        setCoach({ kind: 'ok', text: 'Twelve accurate defensive moves — the fortress holds. Try a new random position.' });
         sounds.success(); drillDone(drill.id); setDone(true);
         return;
       }
@@ -163,8 +164,8 @@ export default function Endgames() {
           <Board fen={fen} onDrop={onDrop} orientation={flipped ? (baseOrientation === 'white' ? 'black' : 'white') : baseOrientation}
             lastMove={lastMove} getMoves={getMoves} />
           <div className="btn-row" style={{ justifyContent: 'center' }}>
-            <button className="btn" onClick={() => setFlipped(!flipped)}>⇅ Flip</button>
-            <button className="btn" onClick={() => loadDrill(drillId)}>🎲 New random position</button>
+            <button className="btn" onClick={() => setFlipped(!flipped)}><Icon name="flip" size={16} /> Flip</button>
+            <button className="btn" onClick={() => loadDrill(drillId)}><Icon name="dice" size={16} /> New random position</button>
             <button className="btn" onClick={() => loadDrill(drillId, false)}>Reset</button>
             {thinking && <span className="chip blue">coach thinking…</span>}
             <span className="chip">{drill.goal === 'win' ? 'Goal: WIN' : 'Goal: DRAW'}</span>
@@ -177,8 +178,8 @@ export default function Endgames() {
             const next = nextDrill(DRILLS, drillsDone);
             return next && next.id !== drillId ? (
               <div className="banner gold big">
-                📍 <b>Next up: {next.name}</b> — {next.category}, {next.goal === 'win' ? 'win it' : 'hold the draw'}.
-                <div className="btn-row"><button className="btn primary btn-mini" onClick={() => loadDrill(next.id)}>Start →</button></div>
+                <Icon name="next_up" size={16} /> <b>Next up: {next.name}</b> — {next.category}, {next.goal === 'win' ? 'win it' : 'hold the draw'}.
+                <div className="btn-row"><button className="btn primary btn-mini" onClick={() => loadDrill(next.id)}>Start <Icon name="next" size={15} /></button></div>
               </div>
             ) : null;
           })()}
@@ -190,7 +191,7 @@ export default function Endgames() {
                 <div className="card-list">
                   {g.drills.map((d) => (
                     <button key={d.id} className={`select-card ${d.id === drillId ? 'active' : ''}`} onClick={() => loadDrill(d.id)}>
-                      <div className="t">{d.name} {drillsDone[d.id] ? `✓×${drillsDone[d.id]}` : ''}</div>
+                      <div className="t">{d.name} {drillsDone[d.id] ? <span className="done-count"><Icon name="check" size={13} strokeWidth={3} />×{drillsDone[d.id]}</span> : null}</div>
                       <div className="d">{d.category} · {d.goal === 'win' ? 'win it' : 'hold the draw'} · randomized</div>
                     </button>
                   ))}
@@ -202,7 +203,7 @@ export default function Endgames() {
           <div className={`banner big ${coach.kind === 'ok' ? 'ok' : coach.kind === 'err' ? 'err' : 'coach'}`}>
             <b>Coach:</b> {coach.text}
           </div>
-          {tbInfo && <div className={`banner ${tbInfo.kind === 'good' ? 'ok' : 'err'}`}>📚 {tbInfo.text}</div>}
+          {tbInfo && <div className={`banner ${tbInfo.kind === 'good' ? 'ok' : 'err'}`}><Icon name="library" size={16} /> {tbInfo.text}</div>}
 
           <div className="panel">
             <h3>Technique</h3>

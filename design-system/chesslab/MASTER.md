@@ -1,227 +1,193 @@
-# Design System Master File
+# ChessLab design system: "Slate"
 
-> **LOGIC:** When building a specific page, first check `design-system/pages/[page-name].md`.
-> If that file exists, its rules **override** this Master file.
-> If not, strictly follow the rules below.
+This file describes what actually ships. The single source of truth is the
+token block at the top of [`src/index.css`](../../src/index.css). If you change a
+token there, update the table here in the same commit.
 
----
+**Rules**
 
-**Project:** ChessLab
-**Generated:** 2026-07-24 05:08:36
-**Category:** Luxury/Premium Brand
-**Design Dials:** Variance 5/10 (Balanced / Modern) | Motion 5/10 (Standard) | Density 8/10 (Dense / Dashboard)
-
----
-
-## Global Rules
-
-### Color Palette
-
-| Role | Hex | CSS Variable |
-|------|-----|--------------|
-| Primary | `#1E3A5F` | `--color-primary` |
-| On Primary | `#FFFFFF` | `--color-on-primary` |
-| Secondary | `#2563EB` | `--color-secondary` |
-| Accent/CTA | `#059669` | `--color-accent` |
-| Background | `#F8FAFC` | `--color-background` |
-| Foreground | `#0F172A` | `--color-foreground` |
-| Muted | `#F1F3F5` | `--color-muted` |
-| Border | `#E4E7EB` | `--color-border` |
-| Destructive | `#DC2626` | `--color-destructive` |
-| Ring | `#1E3A5F` | `--color-ring` |
-
-**Color Notes:** Navy professional + paid green
-
-### Typography
-
-- **Heading Font:** Inter
-- **Body Font:** Inter
-- **Mood:** dark, cinematic, technical, precision, clean, premium, developer, professional, high-end utility
-- **Google Fonts:** [Inter + Inter](https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap)
-
-**CSS Import:**
-```css
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-```
-
-### Spacing Variables
-
-*Density: 8/10 — Dense / Dashboard*
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--space-xs` | `2px` / `0.125rem` | Tight gaps |
-| `--space-sm` | `4px` / `0.25rem` | Icon gaps, inline spacing |
-| `--space-md` | `8px` / `0.5rem` | Standard padding |
-| `--space-lg` | `12px` / `0.75rem` | Section padding |
-| `--space-xl` | `16px` / `1rem` | Large gaps |
-| `--space-2xl` | `24px` / `1.5rem` | Section margins |
-| `--space-3xl` | `32px` / `2rem` | Hero padding |
-
-### Shadow Depths
-
-| Level | Value | Usage |
-|-------|-------|-------|
-| `--shadow-sm` | `0 1px 2px rgba(0,0,0,0.05)` | Subtle lift |
-| `--shadow-md` | `0 4px 6px rgba(0,0,0,0.1)` | Cards, buttons |
-| `--shadow-lg` | `0 10px 15px rgba(0,0,0,0.1)` | Modals, dropdowns |
-| `--shadow-xl` | `0 20px 25px rgba(0,0,0,0.15)` | Hero images, featured cards |
+1. Raw values (hex, rgb, px font sizes, radii, shadows) live only in the
+   `:root` / `[data-theme="light"]` token blocks. Component CSS reads tokens.
+2. A theme swaps **solid** colours only. Transparent tints are derived from the
+   solids (alpha ladder below), so they follow the theme automatically.
+3. No emoji in the UI. Icons come from `lucide-react` through one registry,
+   [`src/components/Icon.jsx`](../../src/components/Icon.jsx). Data files store a
+   semantic icon *name*, never a drawing.
+4. Chess glyphs are allowed only as notation: pieces on the board, figurine
+   move lists (`src/figurine.js`), annotation marks (`!!`, `!`, `?!`, `?`, `??`).
+5. Fully offline: system font stack, no web fonts, no runtime CDN.
 
 ---
 
-## Component Specs
+## Colour
 
-### Buttons
+### Surfaces and text (dark default, light override)
 
-```css
-/* Primary Button */
-.btn-primary {
-  background: #059669;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
+| Token | Dark | Light | Use |
+|---|---|---|---|
+| `--bg` | `#0a0f1e` | `#eef0f5` | Page background |
+| `--bg2` | `#101828` | `#f4f6fa` | Inputs, selects |
+| `--bg3` | `#18213a` | `#e9ecf2` | Deep wells |
+| `--surface` | `#131c31` | `#ffffff` | Opaque cards and panels |
+| `--surface-2` | `#1c2740` | `#f4f6fa` | Raised surface |
+| `--glass` / `--glass-strong` | surface at 72% / 92% | white at 72% / 92% | Frosted nav, popovers, sticky tabs |
+| `--field` | black at 30% | white at 80% | Sunken fields: PGN box, clock |
+| `--scrim` | `#0a0f1e` at 55% | `#eef0f5` at 60% | Cover over blurred content |
+| `--fill-1 … --fill-4` | tint at 3 / 6 / 10 / 16% | ink at same | Hover and quiet fills |
+| `--border` / `--border-strong` | slate at 12% / 24% | ink at 10% / 18% | Hairlines |
+| `--text` | `#eef2fb` | `#1b2030` | Primary text |
+| `--muted` | `#94a3b8` | `#5d6577` | Secondary text |
+| `--sub` | `#64748b` | `#8892a4` | Labels, captions |
 
-.btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
+### Accents and status
 
-/* Secondary Button */
-.btn-secondary {
-  background: transparent;
-  color: #1E3A5F;
-  border: 2px solid #1E3A5F;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-```
+| Token | Dark | Light | Use |
+|---|---|---|---|
+| `--accent` | `#6366f1` | `#4f46e5` | Primary actions, active state, focus |
+| `--accent-soft` | `#a5b4fc` | `#4338ca` | Accent text and icons on dark |
+| `--accent-strong` | `#4f46e5` | `#3730a3` | Bottom of `--accent-fill` |
+| `--on-accent` | `#ffffff` | `#ffffff` | Text on accent fills |
+| `--accent-fill` | accent → accent-strong | same | Primary buttons, active pill tabs (keeps white text at 4.5:1 or better) |
+| `--live` | `#2dd4bf` | `#0d9488` | Live engine indicators, "Explain" action |
+| `--good` | `#4ade80` | `#16a34a` | Success, wins, positive eval |
+| `--bad` | `#f87171` | `#dc2626` | Errors, losses, negative eval |
+| `--warn` | `#e58f2a` | `#e58f2a` | Warning gradients |
+| `--info` | `#60a5fa` | `#2563eb` | Coach banners, info chips |
 
-### Cards
+**Alpha ladder.** `--accent-a1 … a4`, `--live-a1 … a3`, `--good-a1/a3/a4`,
+`--bad-a1/a3/a4`, `--info-a1/a3/a4` = the solid colour at **8 / 16 / 30 / 50%**
+via `color-mix(in srgb, …, transparent)`. Use a1 for washes, a2 for selected
+backgrounds, a3 for borders, a4 for glows and focus rings.
 
-```css
-.card {
-  background: #F8FAFC;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: var(--shadow-md);
-  transition: all 200ms ease;
-  cursor: pointer;
-}
+### Move classification
 
-.card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
-```
+One `--tag` custom property per class drives text colour, chip tint and badge
+fill (`.tag-*` / `.cbadge-*`). The colour coding follows the familiar Game Review
+convention; the badge drawings are our own ([`ClassBadge.jsx`](../../src/components/ClassBadge.jsx)).
 
-### Inputs
+| Class | Token | Default | Colourblind-safe (Settings) | Badge |
+|---|---|---|---|---|
+| Brilliant | `--c-brilliant` | `#1baca6` | `#56b4e9` | `!!` |
+| Great | `--c-great` | `#5c8bb0` | `#0072b2` | `!` |
+| Best | `--c-best` | `#6aa84f` | `#009e73` | star icon |
+| Excellent | `--c-excellent` | `#81b64c` | same | thumbs-up icon |
+| Good | `--c-good` | `#95a75c` | same | check icon |
+| Book | `--c-book` | `#a88865` | same | open-book icon |
+| Inaccuracy | `--c-inacc` | `#f0c043` | `#f0e442` | `?!` |
+| Miss | `--c-miss` | `#fd7e6f` | `#cc79a7` | x icon |
+| Mistake | `--c-mistake` | `#e58f2a` | `#e69f00` | `?` |
+| Blunder | `--c-blunder` | `#fa412d` | `#d55e00` | `??` |
+| Forced | `--c-forced` | `--muted` | same | arrow icon |
 
-```css
-.input {
-  padding: 12px 16px;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 200ms ease;
-}
+### Board furniture
 
-.input:focus {
-  border-color: #1E3A5F;
-  outline: none;
-  box-shadow: 0 0 0 3px #1E3A5F20;
-}
-```
-
-### Modals
-
-```css
-.modal-overlay {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.modal {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: var(--shadow-xl);
-  max-width: 500px;
-  width: 90%;
-}
-```
+`--side-white` / `--side-white-ink`, `--side-black` / `--side-black-ink` (player
+avatars, accuracy boxes, side dots), `--eval-track` (eval bar), `--graph-bg`,
+`--graph-line`, `--graph-cursor` (eval graph). Board square colours are user
+data, not tokens: see `BOARD_THEMES` in `src/settings.js`.
 
 ---
 
-## Style Guidelines
+## Typography
 
-**Style:** Modern Dark (Cinema Mobile)
+System stack only (`--font`): Inter if installed, else SF Pro / Segoe UI /
+Roboto. Monospace (`--mono`) for clocks, evals, move lists and numbers.
 
-**Keywords:** dark mode, cinematic, ambient light, glassmorphism, deep black, indigo, glow, blur, atmospheric, reanimated, haptic, premium, layered, frosted glass, linear gradient
+All sizes are **rem**, so Settings › Text size (90 / 100 / 112%) scales them.
 
-**Best For:** Developer tools, pro productivity apps, fintech/trading dashboards, media/streaming platforms, AI tool interfaces, high-end gaming companion apps
-
-**Key Effects:** Expo.out Bezier(0.16,1,0.3,1) easing; spring modals (damping:20 stiffness:90); haptic-linked press (Impact Light/Medium); animated ambient light blobs (Reanimated translateX/Y slow oscillation); BlurView glassmorphism headers/nav (intensity 20); scale press 0.97 → 1.0; avoid pure #000000 (OLED smear)
-
-### Page Pattern
-
-**Pattern Name:** AI Personalization Landing
-
-- **Conversion Strategy:** 20%+ conversion with personalization. Requires analytics integration. Fallback for new users.
-- **CTA Placement:** Context-aware placement based on user segment
-- **Section Order:** 1. Dynamic hero (personalized), 2. Relevant features, 3. Tailored testimonials, 4. Smart CTA
+| Token | Size at 100% | Use |
+|---|---|---|
+| `--fs-3xs` | 9px | Superscript marks |
+| `--fs-2xs` | 10.5px | Uppercase section labels (letter-spacing 1.4 to 1.8px) |
+| `--fs-xs` | 11.5px | Chips, captions |
+| `--fs-sm` | 12.5px | Secondary lines |
+| `--fs-base` | 13.5px | Buttons, controls, move list |
+| `--fs-md` | 14.5px | Dense body, coach bubble |
+| `--fs-body` | 15px | Running text (`body`) |
+| `--fs-lg` | 17px | Brand, accuracy boxes |
+| `--fs-xl` | 20px | Clocks, rush bar |
+| `--fs-2xl` | 22px | Game-over title, mobile page title |
+| `--fs-3xl` | 30px | Page titles |
+| `--fs-4xl` | 36px | Big stat numbers |
 
 ---
+
+## Space
+
+Tokens are named by their pixel value on a 2/4px grid:
+`--space-2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 80`, plus
+`--nav-clearance` (90px, room under content for the phone bottom nav).
+
+Component sizes (widths, heights of fixed elements) stay literal; padding,
+margin and gap always use a space token.
+
+## Shape
+
+| Token | Value | Use |
+|---|---|---|
+| `--radius-xs` | 4px | Tiny bars, focus outline |
+| `--radius-sm` | 6px | Move-list cells, small boxes |
+| `--radius-md` | 10px | Buttons, inputs, cards in lists |
+| `--radius-lg` | 14px | Panels, board shell |
+| `--radius-pill` | 999px | Chips, pill tabs |
+
+## Depth
+
+| Token | Use |
+|---|---|
+| `--shadow-sm` | Badges, avatars |
+| `--shadow` | Cards, panels |
+| `--shadow-lg` | Board shell, popovers |
+| `--shadow-pop` | Big banners |
+| `--highlight` | 1px top inner highlight on glass panels |
+| `--glow` | Accent halo around the board |
+| `--ring` | Focus ring on inputs |
+| `--ring-active` | Selected card / active player / current move |
+| `--ring-inset` | Active tab, active nav item |
+| `--shadow-accent`, `--shadow-accent-hover` | Primary button lift |
+| `--shadow-check`, `--shadow-check-peak` | King-in-check pulse |
+| `--blur`, `--blur-soft` | Backdrop filters for glass |
+
+Shadow colour comes from `--shade` (an RGB triplet), so light mode softens every
+shadow at once.
 
 ## Motion
 
-**Stagger List** (Standard) — Trigger: load or scroll | Duration: 300-450ms | Easing: `back.out(1.4)`
-
-```js
-gsap.from('.grid-item', { opacity: 0, scale: 0.92, y: 16, duration: 0.4, stagger: { each: 0.06, from: 'start', grid: 'auto' }, ease: 'back.out(1.4)' });
-```
-
-**Framework notes:** grid: 'auto' lets GSAP infer rows/columns from a CSS grid layout for a natural wave stagger
-
-- ✅ Combine with from: 'center' for a bento-grid layout to draw the eye inward first
-- ❌ Don't use back.out on dense data tables; the overshoot reads as sloppy on informational UI
-- ⚡ Group DOM writes; avoid interleaving layout reads (getBoundingClientRect) between staggered tweens
+`--ease-out` (expo-out), `--dur-fast` 0.12s, `--dur` 0.15s, `--dur-slow` 0.25s.
+Page enter is 0.2s. `prefers-reduced-motion: reduce` collapses every animation
+and transition to near zero, including the ambient background drift.
 
 ---
 
-## Anti-Patterns (Do NOT Use)
+## Components
 
-- ❌ Cheap visuals
-- ❌ Fast animations
+### Icons
 
-### Additional Forbidden Patterns
+`<Icon name="tactics" size={18} />` from `src/components/Icon.jsx`. Stroke icons,
+2px stroke (3px inside badges), `aria-hidden` unless a `label` is passed.
+Icon-only buttons must carry `aria-label`. Registered names cover pages,
+actions, review tabs, statuses and every mistake motif key. Add new names there;
+never import lucide directly in a section.
 
-- ❌ **Emojis as icons** — Use SVG icons (Heroicons, Lucide, Simple Icons)
-- ❌ **Missing cursor:pointer** — All clickable elements must have cursor:pointer
-- ❌ **Layout-shifting hovers** — Avoid scale transforms that shift layout
-- ❌ **Low contrast text** — Maintain 4.5:1 minimum contrast ratio
-- ❌ **Instant state changes** — Always use transitions (150-300ms)
-- ❌ **Invisible focus states** — Focus states must be visible for a11y
+### Bot avatars
 
----
+`<BotAvatar bot={b} />` (`src/components/BotAvatar.jsx`): a monogram tile whose
+hue walks from green (400) through blue and violet to crimson (3200), plus a
+five-step strength meter. Generated, so no image assets.
 
-## Pre-Delivery Checklist
+### Side dot
 
-Before delivering any UI code, verify:
+`<SideDot side="w|b" />`: small disc that marks the colour a player or opening
+line belongs to.
 
-- [ ] No emojis used as icons (use SVG instead)
-- [ ] All icons from consistent icon set (Heroicons/Lucide)
-- [ ] `cursor-pointer` on all clickable elements
-- [ ] Hover states with smooth transitions (150-300ms)
-- [ ] Light mode: text contrast 4.5:1 minimum
-- [ ] Focus states visible for keyboard navigation
-- [ ] `prefers-reduced-motion` respected
-- [ ] Responsive: 375px, 768px, 1024px, 1440px
-- [ ] No content hidden behind fixed navbars
-- [ ] No horizontal scroll on mobile
+### Buttons
+
+`.btn` (quiet fill), `.btn.primary` (`--accent-fill`, white text,
+`--shadow-accent`), `.btn.teal` (live accent), `.btn-mini` (compact). Icons sit
+inside the button before the label with a 6px gap.
+
+### Chips, banners, panels
+
+`.chip` (+ `.green` `.red` `.blue` `.teal` `.tag-*`), `.banner` (`.ok` `.err`
+`.coach` `.gold`, `.big` adds a 4px left rule), `.panel` (frosted glass in dark,
+solid surface in light).

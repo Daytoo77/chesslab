@@ -2,6 +2,12 @@
 
 ChessLab is a personal chess training app (React + Vite) with an offline game review: Stockfish 17.1 lite runs as WASM in a Web Worker, and every move is graded by a **win-probability based classifier** (Brilliant, Great, Best, Excellent, Good, Book, Inaccuracy, Miss, Mistake, Blunder) with per-side accuracy, a game rating and mistake-motif tagging. The review logic lives in [`packages/review-core`](packages/review-core) — engine-agnostic, plain-JSON output.
 
+## v25 — one design system, no emoji
+- **Design tokens.** `src/index.css` now reads from a single "Slate" token set (colour, alpha ladder, type scale in rem, 2/4px spacing grid, radii, shadows, motion). Old purple-theme leftovers are gone, light mode is driven by the same tokens, and **Settings › Text size** now actually scales text. Documented in [`design-system/chesslab/MASTER.md`](design-system/chesslab/MASTER.md).
+- **Icons instead of emoji.** Every emoji and decorative glyph in the UI is replaced by a stroke icon from [lucide-react](https://lucide.dev) through one registry (`src/components/Icon.jsx`), or by plain text. Chess glyphs stay where they are notation (board, figurine move lists, `!!`/`?` marks).
+- **Generated bot avatars** (monogram tile, hue from Elo, strength meter) replace the animal emoji.
+- **review-core:** `MOTIF_META` keeps labels and advice only; icons are a UI concern. No change to classification or accuracy output (`golden.json` untouched).
+
 ## v24 — review-core package + licensing
 - **`packages/review-core`** (`@chesslab/review-core`, npm workspace): classification, accuracy, MultiPV analysis + brilliant re-verification, motif tagging, commentary, thresholds and coach context builders. `reviewGame(pgn, { engine, color })` returns a plain-JSON review; `engine` is a small adapter — `analyse(fen, { multipv, movetime }) → lines` — so the core knows nothing about Web Workers or Stockfish loading. The app's Stockfish worker pool is one adapter (`src/stockfishAdapter.js`).
 - **Behaviour locked by a golden test**: the pre-extraction analyzer's output for 6 game/colour/pool cases, recorded with a deterministic fake engine, must be reproduced exactly.
@@ -231,4 +237,4 @@ Personal chess training app (React + Vite + chess.js + react-chessboard + zustan
 All puzzles, opening lines and endgame templates are machine-checked (chess.js legality, real mates, material counts); K+P drill templates verified against an exhaustive KPK tablebase.
 
 ## License
-ChessLab is free software, licensed under the **GNU General Public License v3.0 or later** — see [`LICENSE`](LICENSE). The app bundles **Stockfish 17.1** (WASM build), which is itself distributed under the GPLv3; its copyright notices are kept in the bundled engine files.
+ChessLab is free software, licensed under the **GNU General Public License v3.0 or later** — see [`LICENSE`](LICENSE). The app bundles **Stockfish 17.1** (WASM build), which is itself distributed under the GPLv3; its copyright notices are kept in the bundled engine files. Icons are from [Lucide](https://lucide.dev) (`lucide-react`, ISC licence, GPL-compatible).

@@ -37,6 +37,7 @@ test('classifyMotifs: the hung-queen blunder is tagged', () => {
 
 test('every motif key has complete metadata', () => {
   for (const [key, m] of Object.entries(MOTIF_META)) {
-    assert.ok(m.label && m.advice && m.icon, `motif ${key} is missing metadata`);
+    assert.ok(m.label && m.advice && m.cls, `motif ${key} is missing metadata`);
+    assert.ok(!('icon' in m), `motif ${key}: icons belong to the UI, not review-core data`);
   }
 });

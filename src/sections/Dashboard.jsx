@@ -8,6 +8,8 @@ import { useStats, dayKey, lineDue, weaknessTop, weaknessRecent } from '../store
 import { MOTIF_META } from '@chesslab/review-core';
 import { motifTrends } from '../queue.js';
 import { useUi } from '../settings.js';
+import Icon from '../components/Icon.jsx';
+import BotAvatar from '../components/BotAvatar.jsx';
 
 function Sparkline({ data, w = 220, h = 44 }) {
   if (!data || data.length < 2) return null;
@@ -16,7 +18,7 @@ function Sparkline({ data, w = 220, h = 44 }) {
   const pts = data.map((v, i) => `${((i / (data.length - 1)) * w).toFixed(1)},${(h - 4 - ((v - min) / span) * (h - 8)).toFixed(1)}`).join(' ');
   return (
     <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: h, display: 'block', marginTop: 8 }}>
-      <polyline points={pts} fill="none" stroke="var(--gold)" strokeWidth="1.8" />
+      <polyline points={pts} fill="none" stroke="var(--accent)" strokeWidth="1.8" />
     </svg>
   );
 }
@@ -54,19 +56,19 @@ export default function Dashboard() {
         const nextBot = BOTS.find((b) => b.elo > s.bestWinElo) || BOTS[BOTS.length - 1];
         const leastDrill = DRILLS.reduce((min, d) => ((s.drillsDone[d.id] || 0) < (s.drillsDone[min.id] || 0) ? d : min), DRILLS[0]);
         const items = [
-          { done: puzzlesLeft === 0, label: puzzlesLeft === 0 ? 'Daily puzzles ✓' : `Solve today's ${puzzlesLeft} puzzle${puzzlesLeft > 1 ? 's' : ''}`, page: 'tactics' },
-          { done: dueLines === 0, label: dueLines === 0 ? 'Opening reviews ✓' : `Daily drill: ${dueLines} line${dueLines > 1 ? 's' : ''} due (SRS)`, page: 'openings' },
-          { done: false, label: `Play ${nextBot.emoji} ${nextBot.name} (${nextBot.elo === 3200 ? 'MAX' : nextBot.elo}) — your next ladder step`, page: 'play' },
+          { done: puzzlesLeft === 0, label: puzzlesLeft === 0 ? 'Daily puzzles' : `Solve today's ${puzzlesLeft} puzzle${puzzlesLeft > 1 ? 's' : ''}`, page: 'tactics' },
+          { done: dueLines === 0, label: dueLines === 0 ? 'Opening reviews' : `Daily drill: ${dueLines} line${dueLines > 1 ? 's' : ''} due (SRS)`, page: 'openings' },
+          { done: false, label: `Play ${nextBot.name} (${nextBot.elo === 3200 ? 'MAX' : nextBot.elo}) — your next ladder step`, page: 'play' },
           { done: false, label: `One endgame drill: ${leastDrill.name}`, page: 'endgames' },
         ];
         return (
-          <div className="panel" style={{ marginBottom: 18, maxWidth: 640, borderColor: 'var(--gold)' }}>
-            <h3>🎯 Coach du jour</h3>
+          <div className="panel" style={{ marginBottom: 18, maxWidth: 640, borderColor: 'var(--accent)' }}>
+            <h3 className="h-icon"><Icon name="focus" size={14} /> Coach du jour</h3>
             {items.map((it, i) => (
               <p key={i} className="small" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '7px 0' }}>
-                <span style={{ width: 18 }}>{it.done ? '✅' : '⬜'}</span>
+                <Icon name={it.done ? 'todoDone' : 'todo'} size={18} className={it.done ? 'ok-ink' : 'muted'} />
                 <span style={{ flex: 1, textDecoration: it.done ? 'line-through' : 'none', color: it.done ? 'var(--muted)' : 'var(--text)' }}>{it.label}</span>
-                {!it.done && <button className="btn" style={{ padding: '2px 12px' }} onClick={() => setPage(it.page)}>Go →</button>}
+                {!it.done && <button className="btn" style={{ padding: '2px 12px' }} onClick={() => setPage(it.page)}>Go <Icon name="next" size={14} /></button>}
               </p>
             ))}
           </div>
@@ -74,13 +76,13 @@ export default function Dashboard() {
       })()}
 
       <div className="stat-grid">
-        <div className="stat-card"><div className="v">{s.puzzleRating}</div><div className="l">⚡ PUZZLE RATING<Sparkline data={s.puzzleRatingHistory} /></div></div>
-        <div className="stat-card"><div className="v">{gamesVsBots ? `+${vsTotals.w} =${vsTotals.d} −${vsTotals.l}` : '—'}</div><div className="l">🤖 VS BOTS{s.bestWinElo ? ` · BEST WIN ${s.bestWinElo === 3200 ? 'MAX' : s.bestWinElo}` : ''}</div></div>
-        <div className="stat-card"><div className="v">{s.streak}<small> days</small></div><div className="l">🔥 TACTICS STREAK (best: {s.bestStreak})</div></div>
+        <div className="stat-card"><div className="v">{s.puzzleRating}</div><div className="l"><Icon name="rating" size={12} /> PUZZLE RATING<Sparkline data={s.puzzleRatingHistory} /></div></div>
+        <div className="stat-card"><div className="v">{gamesVsBots ? `+${vsTotals.w} =${vsTotals.d} −${vsTotals.l}` : '—'}</div><div className="l"><Icon name="bot" size={12} /> VS BOTS{s.bestWinElo ? ` · BEST WIN ${s.bestWinElo === 3200 ? 'MAX' : s.bestWinElo}` : ''}</div></div>
+        <div className="stat-card"><div className="v">{s.streak}<small> days</small></div><div className="l"><Icon name="streak" size={12} /> TACTICS STREAK (best: {s.bestStreak})</div></div>
         <div className="stat-card"><div className="v">{solvedToday}<small> / 3</small></div><div className="l">TODAY'S PUZZLES</div></div>
-        <div className="stat-card"><div className="v">{s.rushBest}</div><div className="l">⚡ TIME RUSH RECORD</div></div>
+        <div className="stat-card"><div className="v">{s.rushBest}</div><div className="l"><Icon name="rush" size={12} /> TIME RUSH RECORD</div></div>
         <div className="stat-card"><div className="v">{s.tacticsSolved}</div><div className="l">PUZZLES SOLVED{accuracy != null ? ` · ${accuracy}% first-try` : ''}</div></div>
-        <div className="stat-card"><div className="v">{dueLines}</div><div className="l">📅 LINES DUE FOR REVIEW (SRS)</div></div>
+        <div className="stat-card"><div className="v">{dueLines}</div><div className="l"><Icon name="due" size={12} /> LINES DUE FOR REVIEW (SRS)</div></div>
         <div className="stat-card"><div className="v">{studied}<small> / {totalLines}</small></div><div className="l">LINES STUDIED</div></div>
         <div className="stat-card"><div className="v">{quizzed}<small> / {totalLines}</small></div><div className="l">LINES QUIZ-TESTED</div></div>
         <div className="stat-card"><div className="v">{s.gamesAnalyzed}</div><div className="l">GAMES ANALYZED</div></div>
@@ -115,12 +117,12 @@ export default function Dashboard() {
               <div className="bars" style={{ height: 70 }}>
                 {avgs.map((a, i) => (
                   <div className="bar-wrap" key={i}>
-                    <div className="bar" style={{ height: `${(a / maxA) * 100}%`, opacity: a ? 1 : 0.18, background: i === worst ? 'linear-gradient(180deg,#e06c6c,#a84444)' : undefined }} />
+                    <div className="bar" style={{ height: `${(a / maxA) * 100}%`, opacity: a ? 1 : 0.18, background: i === worst ? 'linear-gradient(180deg, var(--bad), color-mix(in srgb, var(--bad) 60%, black))' : undefined }} />
                     <div className="bl">{labels[i]}<br />{a} cp</div>
                   </div>
                 ))}
               </div>
-              <p className="small" style={{ marginTop: 10 }}>📌 You bleed the most in <b>{labels[worst].toLowerCase()}</b> — focus on {advice}.</p>
+              <p className="small with-icon" style={{ marginTop: 10 }}><Icon name="insight" size={14} /> <span>You bleed the most in <b>{labels[worst].toLowerCase()}</b> — focus on {advice}.</span></p>
             </>
           );
         })()}
@@ -144,17 +146,17 @@ export default function Dashboard() {
                 <div key={k} style={{ margin: '9px 0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
                     <span className="small">
-                      <span style={{ marginRight: 5 }}>{mm.icon}</span><b>{mm.label}</b>
-                      {tr && tr.dir === 'down' && <span className="chip green" style={{ marginLeft: 7, padding: '1px 7px' }} title={`${tr.olderAvg}/game → ${tr.newerAvg}/game over your recent window`}>↘ improving</span>}
-                      {tr && tr.dir === 'up' && <span className="chip red" style={{ marginLeft: 7, padding: '1px 7px' }} title={`${tr.olderAvg}/game → ${tr.newerAvg}/game over your recent window`}>↗ rising</span>}
+                      <Icon name={k} size={14} className="inline-icon" /> <b>{mm.label}</b>
+                      {tr && tr.dir === 'down' && <span className="chip green" style={{ marginLeft: 7, padding: '1px 7px' }} title={`${tr.olderAvg}/game → ${tr.newerAvg}/game over your recent window`}><Icon name="trend_up" size={12} style={{ transform: 'scaleY(-1)' }} /> improving</span>}
+                      {tr && tr.dir === 'up' && <span className="chip red" style={{ marginLeft: 7, padding: '1px 7px' }} title={`${tr.olderAvg}/game → ${tr.newerAvg}/game over your recent window`}><Icon name="trend_up" size={12} /> rising</span>}
                     </span>
                     <span className="small muted" style={{ fontFamily: 'var(--mono)' }}>{c}× {rc > 0 && <span className="chip red" style={{ marginLeft: 6, padding: '1px 7px' }}>{rc} recent</span>}</span>
                   </div>
-                  <div className="train-cat-bar" style={{ marginTop: 4 }}><div style={{ width: `${(c / maxC) * 100}%`, background: 'linear-gradient(90deg,var(--bad),#e58f2a)' }} /></div>
+                  <div className="train-cat-bar" style={{ marginTop: 4 }}><div style={{ width: `${(c / maxC) * 100}%`, background: 'linear-gradient(90deg,var(--bad),var(--warn))' }} /></div>
                 </div>
               );
             })}
-            <p className="small" style={{ marginTop: 12, marginBottom: 0 }}>📌 Your biggest leak is <b>{lead.label.toLowerCase()}</b> — {lead.advice}</p>
+            <p className="small with-icon" style={{ marginTop: 12, marginBottom: 0 }}><Icon name="insight" size={14} /> <span>Your biggest leak is <b>{lead.label.toLowerCase()}</b> — {lead.advice}</span></p>
           </div>
         );
       })()}
@@ -166,7 +168,7 @@ export default function Dashboard() {
             const r = s.vsRecord[b.id];
             return (
               <p key={b.id} className="small" style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                <span className="muted">{b.emoji} {b.name} ({b.elo === 3200 ? 'MAX' : b.elo})</span>
+                <span className="muted with-icon"><BotAvatar bot={b} size={20} /> {b.name} ({b.elo === 3200 ? 'MAX' : b.elo})</span>
                 <span><b style={{ color: 'var(--good)' }}>+{r.w}</b> <span className="muted">={r.d}</span> <b style={{ color: 'var(--bad)' }}>−{r.l}</b></span>
               </p>
             );
@@ -183,7 +185,7 @@ export default function Dashboard() {
               <span className="muted">{o.name} — {l.name}</span>
               <span>
                 {lineDue(s.srs, l.id) ? <span className="chip red" style={{ marginRight: 8 }}>due</span> : null}
-                <b style={{ color: s.quizBest[l.id] === 100 ? 'var(--good)' : 'var(--gold-soft)' }}>{s.quizBest[l.id]}%</b>
+                <b style={{ color: s.quizBest[l.id] === 100 ? 'var(--good)' : 'var(--accent-soft)' }}>{s.quizBest[l.id]}%</b>
               </span>
             </p>
           ))

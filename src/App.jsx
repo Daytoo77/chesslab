@@ -12,15 +12,16 @@ import { isMuted, setMuted } from './sounds.js';
 import { useStats } from './store.js';
 import { useSettings, useUi, BOARD_THEMES } from './settings.js';
 import { exportBackup, importBackup } from './backup.js';
+import Icon from './components/Icon.jsx';
 
 const SECTIONS = [
-  { id: 'play', label: 'Play vs Bots', icon: '♞', comp: Play, group: 'Play' },
-  { id: 'tactics', label: 'Tactics Trainer', icon: '⚔', comp: Tactics, group: 'Train' },
-  { id: 'openings', label: 'Opening Explorer', icon: '♜', comp: Openings, group: 'Train' },
-  { id: 'endgames', label: 'Endgame Drills', icon: '♚', comp: Endgames, group: 'Train' },
-  { id: 'train', label: 'Training Plan', icon: '◎', comp: Train, group: 'Train' },
-  { id: 'analyzer', label: 'Game Analyzer', icon: '⚡', comp: Analyzer, group: 'Analyze' },
-  { id: 'dashboard', label: 'Progress', icon: '◈', comp: Dashboard, group: 'Analyze' },
+  { id: 'play', label: 'Play vs Bots', comp: Play, group: 'Play' },
+  { id: 'tactics', label: 'Tactics Trainer', comp: Tactics, group: 'Train' },
+  { id: 'openings', label: 'Opening Explorer', comp: Openings, group: 'Train' },
+  { id: 'endgames', label: 'Endgame Drills', comp: Endgames, group: 'Train' },
+  { id: 'train', label: 'Training Plan', comp: Train, group: 'Train' },
+  { id: 'analyzer', label: 'Game Analyzer', comp: Analyzer, group: 'Analyze' },
+  { id: 'dashboard', label: 'Progress', comp: Dashboard, group: 'Analyze' },
 ];
 const NAV_GROUPS = ['Play', 'Train', 'Analyze'];
 
@@ -122,12 +123,12 @@ function Settings({ onClose }) {
         <input type="checkbox" checked={blindfold} onChange={toggleBlindfold} />
       </label>
       <label className="settings-row" style={{ display: 'block' }}>
-        <span>Gemini API key <span style={{ color: 'var(--sub)' }}>· AI coach</span></span>
+        <span>Gemini API key <span className="muted-sub">· AI coach</span></span>
         <input type="password" className="key-input" placeholder="stored only on this device"
           value={settings.geminiKey} onChange={(e) => settings.set({ geminiKey: e.target.value })} />
       </label>
       <div className="settings-row" style={{ display: 'block' }}>
-        <span>Progress backup <span style={{ color: 'var(--sub)' }}>· all stats & settings</span></span>
+        <span>Progress backup <span className="muted-sub">· all stats & settings</span></span>
         <div className="btn-row" style={{ marginTop: 6 }}>
           <button className="btn btn-mini" onClick={() => {
             const blob = new Blob([JSON.stringify(exportBackup(localStorage), null, 2)], { type: 'application/json' });
@@ -136,7 +137,7 @@ function Settings({ onClose }) {
             a.download = `chesslab-backup-${new Date().toISOString().slice(0, 10)}.json`;
             a.click();
             URL.revokeObjectURL(a.href);
-          }}>⬇ Export</button>
+          }}><Icon name="export" size={15} /> Export</button>
           <button className="btn btn-mini" onClick={() => {
             const input = document.createElement('input');
             input.type = 'file';
@@ -155,7 +156,7 @@ function Settings({ onClose }) {
               reader.readAsText(f);
             };
             input.click();
-          }}>⬆ Import</button>
+          }}><Icon name="import" size={15} /> Import</button>
         </div>
       </div>
       <button className="btn" style={{ width: '100%', marginTop: 8 }} onClick={onClose}>Done</button>
@@ -184,7 +185,7 @@ export default function App() {
     <div className="app" onClick={() => showSettings && setShowSettings(false)}>
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark">♞</span>
+          <span className="brand-mark"><Icon name="play" size={22} strokeWidth={2.2} /></span>
           <span className="brand-name">Chess<span className="brand-accent">Lab</span>
             <small>Training Suite</small>
           </span>
@@ -195,7 +196,7 @@ export default function App() {
               <div className="nav-group">{g}</div>
               {SECTIONS.filter((s) => s.group === g).map((s) => (
                 <button key={s.id} className={page === s.id ? 'active' : ''} onClick={() => setPage(s.id)}>
-                  <span className="icon">{s.icon}</span>
+                  <span className="icon"><Icon name={s.id} size={20} /></span>
                   {s.label}
                 </button>
               ))}
@@ -205,7 +206,7 @@ export default function App() {
         <div className="sidebar-foot">
           <div style={{ position: 'relative' }}>
             <button className="btn" style={{ width: '100%', marginBottom: 8 }} onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}>
-              ⚙ Settings
+              <Icon name="settings" size={16} /> <span className="btn-label">Settings</span>
             </button>
             <AnimatePresence>
               {showSettings && <Settings onClose={() => setShowSettings(false)} />}

@@ -6,18 +6,19 @@ import { Chess } from 'chess.js';
 import { VAL } from './material.js';
 
 // Friendly metadata for every motif — label, one-line coaching, chip colour
-// class (reuses the classification palette), icon. Shared by the analyzer
+// class (reuses the classification palette). Icons are a UI concern: the app
+// maps each motif key to an icon (src/components/Icon.jsx). Shared by the analyzer
 // mistake cards, the cross-game weakness profile and the Training Plan.
 export const MOTIF_META = {
-  hung_piece:     { label: 'Hung piece',     short: 'hung a piece',         advice: 'Run a blunder-check every move: after my move, is anything of mine left undefended?', cls: 'tag-blunder', icon: '🎯' },
-  pawn_grab:      { label: 'Greedy pawn',    short: 'grabbed a pawn',        advice: 'Don\'t grab pawns while behind in development — count the tempo cost first.',          cls: 'tag-inacc',   icon: '🪤' },
-  missed_capture: { label: 'Missed material', short: 'missed free material',  advice: 'Scan for undefended enemy pieces — captures and checks come before quiet moves.',       cls: 'tag-miss',    icon: '💰' },
-  missed_fork:    { label: 'Missed fork',    short: 'missed a fork',         advice: 'Look for one move that hits two targets — knight and queen forks especially.',            cls: 'tag-miss',    icon: '🍴' },
-  missed_mate:    { label: 'Missed mate',    short: 'missed a forced mate',  advice: 'When you sense an attack, calculate every check first — the mate hides among them.',      cls: 'tag-miss',    icon: '♔' },
-  allowed_fork:   { label: 'Allowed fork',   short: 'allowed a fork',        advice: 'Watch the squares your opponent\'s knight or queen can jump to next move.',               cls: 'tag-mistake', icon: '🍴' },
-  allowed_mate:   { label: 'Allowed mate',   short: 'allowed a forced mate', advice: 'King safety first — don\'t open lines or strip pawns in front of your own king.',         cls: 'tag-blunder', icon: '⚠' },
-  back_rank:      { label: 'Back rank',      short: 'back-rank weakness',    advice: 'Make luft (h3 / h6) for your king once the major pieces are active.',                     cls: 'tag-blunder', icon: '🔒' },
-  time_trouble:   { label: 'Time trouble',   short: 'low on the clock',      advice: 'Bank time in simple positions so you can think in the critical ones.',                    cls: 'tag-inacc',   icon: '⏰' },
+  hung_piece:     { label: 'Hung piece',     short: 'hung a piece',         advice: 'Run a blunder-check every move: after my move, is anything of mine left undefended?', cls: 'tag-blunder' },
+  pawn_grab:      { label: 'Greedy pawn',    short: 'grabbed a pawn',        advice: 'Don\'t grab pawns while behind in development — count the tempo cost first.',          cls: 'tag-inacc' },
+  missed_capture: { label: 'Missed material', short: 'missed free material',  advice: 'Scan for undefended enemy pieces — captures and checks come before quiet moves.',       cls: 'tag-miss' },
+  missed_fork:    { label: 'Missed fork',    short: 'missed a fork',         advice: 'Look for one move that hits two targets — knight and queen forks especially.',            cls: 'tag-miss' },
+  missed_mate:    { label: 'Missed mate',    short: 'missed a forced mate',  advice: 'When you sense an attack, calculate every check first — the mate hides among them.',      cls: 'tag-miss' },
+  allowed_fork:   { label: 'Allowed fork',   short: 'allowed a fork',        advice: 'Watch the squares your opponent\'s knight or queen can jump to next move.',               cls: 'tag-mistake' },
+  allowed_mate:   { label: 'Allowed mate',   short: 'allowed a forced mate', advice: 'King safety first — don\'t open lines or strip pawns in front of your own king.',         cls: 'tag-blunder' },
+  back_rank:      { label: 'Back rank',      short: 'back-rank weakness',    advice: 'Make luft (h3 / h6) for your king once the major pieces are active.',                     cls: 'tag-blunder' },
+  time_trouble:   { label: 'Time trouble',   short: 'low on the clock',      advice: 'Bank time in simple positions so you can think in the critical ones.',                    cls: 'tag-inacc' },
 };
 
 const fileIdx = (sq) => sq.charCodeAt(0) - 97;

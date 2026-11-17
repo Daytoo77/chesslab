@@ -23,7 +23,7 @@ export const useSettings = create(
   persist(
     (set) => ({
       boardTheme: 'classic', // Classic Green by default
-      appTheme: 'dark',      // dark | light
+      appTheme: 'system',    // system | dark | light
       pieceSet: 'classic',   // classic | unicode
       showLegal: true,       // legal-move dots on click/drag
       coords: true,          // board coordinates

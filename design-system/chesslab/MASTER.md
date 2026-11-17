@@ -1,4 +1,4 @@
-# ChessLab design system: "Slate"
+# ChessLab design system: "Slate" (Apple-clean)
 
 This file describes what actually ships. The single source of truth is the
 token block at the top of [`src/index.css`](../../src/index.css). If you change a
@@ -21,43 +21,49 @@ token there, update the table here in the same commit.
 
 ## Colour
 
-### Surfaces and text (dark default, light override)
+Apple-style neutral grays (no blue cast) with one blue accent. The theme
+setting is **Automatic** (follows the device, live), **Dark** or **Light**.
+A theme swaps solid colours and `--tint` only; hairlines, fills and the alpha
+ladder derive from them.
+
+### Surfaces and text
 
 | Token | Dark | Light | Use |
 |---|---|---|---|
-| `--bg` | `#0a0f1e` | `#eef0f5` | Page background |
-| `--bg2` | `#101828` | `#f4f6fa` | Inputs, selects |
-| `--bg3` | `#18213a` | `#e9ecf2` | Deep wells |
-| `--surface` | `#131c31` | `#ffffff` | Opaque cards and panels |
-| `--surface-2` | `#1c2740` | `#f4f6fa` | Raised surface |
-| `--glass` / `--glass-strong` | surface at 72% / 92% | white at 72% / 92% | Frosted nav, popovers, sticky tabs |
-| `--field` | black at 30% | white at 80% | Sunken fields: PGN box, clock |
-| `--scrim` | `#0a0f1e` at 55% | `#eef0f5` at 60% | Cover over blurred content |
-| `--fill-1 … --fill-4` | tint at 3 / 6 / 10 / 16% | ink at same | Hover and quiet fills |
-| `--border` / `--border-strong` | slate at 12% / 24% | ink at 10% / 18% | Hairlines |
-| `--text` | `#eef2fb` | `#1b2030` | Primary text |
-| `--muted` | `#94a3b8` | `#5d6577` | Secondary text |
-| `--sub` | `#64748b` | `#8892a4` | Labels, captions |
+| `--bg` | `#000000` | `#f2f2f7` | Page background |
+| `--bg2` | `#1c1c1e` | `#eeeef3` | Inputs, selects |
+| `--bg3` | `#2c2c2e` | `#e5e5ea` | Deep wells |
+| `--surface` | `#1c1c1e` | `#ffffff` | Cards and panels |
+| `--surface-2` | `#2c2c2e` | `#f9f9fb` | Raised surface |
+| `--glass` / `--glass-strong` | surface at 72% / 92% | same | Translucent nav, popovers (with `--blur`) |
+| `--field` | `#767680` at 24% | at 12% | Sunken fields, clock |
+| `--scrim` | black at 45% | `#f2f2f7` at 60% | Cover over blurred content |
+| `--seg-active` | `#636366` | `#ffffff` | Selected segment (analysis tabs) |
+| `--tint` | `235 235 245` | `60 60 67` | Channel for hairlines and fills |
+| `--fill-1 … --fill-4` | tint at 3 / 6 / 10 / 16% | same | Hover and quiet fills |
+| `--border` / `--border-strong` | tint at 12% / 24% | same | Hairlines |
+| `--text` | `#f5f5f7` | `#1d1d1f` | Primary text |
+| `--muted` | `#98989d` | `#6e6e73` | Secondary text |
+| `--sub` | `#6c6c70` | `#8e8e93` | Captions |
 
 ### Accents and status
 
 | Token | Dark | Light | Use |
 |---|---|---|---|
-| `--accent` | `#6366f1` | `#4f46e5` | Primary actions, active state, focus |
-| `--accent-soft` | `#a5b4fc` | `#4338ca` | Accent text and icons on dark |
-| `--accent-strong` | `#4f46e5` | `#3730a3` | Bottom of `--accent-fill` |
+| `--accent` | `#0a84ff` | `#0071e3` | Active state, links, icons, focus |
+| `--accent-soft` | `#409cff` | `#0058b0` | Accent text on tinted backgrounds |
+| `--accent-strong` | `#0a6fdc` | `#0071e3` | Fills that carry white text |
+| `--accent-fill` | = `--accent-strong` | same | Primary buttons, active pills (flat, no gradient) |
 | `--on-accent` | `#ffffff` | `#ffffff` | Text on accent fills |
-| `--accent-fill` | accent → accent-strong | same | Primary buttons, active pill tabs (keeps white text at 4.5:1 or better) |
-| `--live` | `#2dd4bf` | `#0d9488` | Live engine indicators, "Explain" action |
-| `--good` | `#4ade80` | `#16a34a` | Success, wins, positive eval |
-| `--bad` | `#f87171` | `#dc2626` | Errors, losses, negative eval |
-| `--warn` | `#e58f2a` | `#e58f2a` | Warning gradients |
-| `--info` | `#60a5fa` | `#2563eb` | Coach banners, info chips |
+| `--live` | `#40c8e0` | `#0a8a9c` | Live engine, "Explain" action |
+| `--good` | `#30d158` | `#248a3d` | Success, wins |
+| `--bad` | `#ff453a` | `#d70015` | Errors, losses |
+| `--warn` | `#ff9f0a` | `#e08600` | Warnings |
+| `--info` | `#64d2ff` | `#0077a8` | Coach banners |
 
 **Alpha ladder.** `--accent-a1 … a4`, `--live-a1 … a3`, `--good-a1/a3/a4`,
 `--bad-a1/a3/a4`, `--info-a1/a3/a4` = the solid colour at **8 / 16 / 30 / 50%**
-via `color-mix(in srgb, …, transparent)`. Use a1 for washes, a2 for selected
-backgrounds, a3 for borders, a4 for glows and focus rings.
+via `color-mix`. a1 washes, a2 selected backgrounds, a3 borders, a4 rings.
 
 ### Move classification
 
@@ -90,15 +96,14 @@ data, not tokens: see `BOARD_THEMES` in `src/settings.js`.
 
 ## Typography
 
-System stack only (`--font`): Inter if installed, else SF Pro / Segoe UI /
-Roboto. Monospace (`--mono`) for clocks, evals, move lists and numbers.
+System stack only (`--font`): SF Pro on Apple devices (`-apple-system`), else Inter if installed, Segoe UI, Roboto. Body letter-spacing is -0.01em, page titles -0.03em. Monospace (`--mono`: SF Mono, Menlo) for clocks, evals, move lists and numbers. Section labels are sentence case, never uppercase with tracking.
 
 All sizes are **rem**, so Settings › Text size (90 / 100 / 112%) scales them.
 
 | Token | Size at 100% | Use |
 |---|---|---|
 | `--fs-3xs` | 9px | Superscript marks |
-| `--fs-2xs` | 10.5px | Uppercase section labels (letter-spacing 1.4 to 1.8px) |
+| `--fs-2xs` | 10.5px | Tiny captions |
 | `--fs-xs` | 11.5px | Chips, captions |
 | `--fs-sm` | 12.5px | Secondary lines |
 | `--fs-base` | 13.5px | Buttons, controls, move list |
@@ -125,37 +130,37 @@ margin and gap always use a space token.
 
 | Token | Value | Use |
 |---|---|---|
-| `--radius-xs` | 4px | Tiny bars, focus outline |
-| `--radius-sm` | 6px | Move-list cells, small boxes |
-| `--radius-md` | 10px | Buttons, inputs, cards in lists |
-| `--radius-lg` | 14px | Panels, board shell |
+| `--radius-xs` | 6px | Tiny bars, focus outline |
+| `--radius-sm` | 8px | Move-list cells, small boxes |
+| `--radius-md` | 12px | Buttons, inputs, list rows, board shell |
+| `--radius-lg` | 18px | Cards and panels |
 | `--radius-pill` | 999px | Chips, pill tabs |
 
 ## Depth
 
+Flat by default. Dark mode relies on surface contrast; light mode adds a faint
+two-layer shadow. No glows, no gradients on buttons or bars.
+
 | Token | Use |
 |---|---|
-| `--shadow-sm` | Badges, avatars |
+| `--shadow-sm` | Badges, avatars, selected segment |
 | `--shadow` | Cards, panels |
 | `--shadow-lg` | Board shell, popovers |
 | `--shadow-pop` | Big banners |
-| `--highlight` | 1px top inner highlight on glass panels |
-| `--glow` | Accent halo around the board |
-| `--ring` | Focus ring on inputs |
-| `--ring-active` | Selected card / active player / current move |
-| `--ring-inset` | Active tab, active nav item |
-| `--shadow-accent`, `--shadow-accent-hover` | Primary button lift |
+| `--ring` | Focus ring on inputs (4px accent wash) |
+| `--ring-active` | Selected card, active player, current move (2px accent) |
+| `--ring-inset` | Subtle inset outline |
 | `--shadow-check`, `--shadow-check-peak` | King-in-check pulse |
-| `--blur`, `--blur-soft` | Backdrop filters for glass |
+| `--blur`, `--blur-soft` | Backdrop filter for translucent material (saturate 180%, blur 20px) |
+| `--highlight`, `--glow`, `--shadow-accent*` | Neutralised (no-op) hooks, kept so a theme can bring them back |
 
-Shadow colour comes from `--shade` (an RGB triplet), so light mode softens every
-shadow at once.
+Shadow colour comes from `--shade` (an RGB triplet).
 
 ## Motion
 
-`--ease-out` (expo-out), `--dur-fast` 0.12s, `--dur` 0.15s, `--dur-slow` 0.25s.
-Page enter is 0.2s. `prefers-reduced-motion: reduce` collapses every animation
-and transition to near zero, including the ambient background drift.
+`--ease-out` (`cubic-bezier(0.32, 0.72, 0, 1)`, an iOS-style decelerate), `--dur-fast` 0.12s, `--dur` 0.18s, `--dur-slow` 0.3s.
+Page enter is 0.2s. Buttons press to scale 0.97; cards do not lift on hover. `prefers-reduced-motion: reduce` collapses every animation
+and transition to near zero.
 
 ---
 
@@ -182,12 +187,10 @@ line belongs to.
 
 ### Buttons
 
-`.btn` (quiet fill), `.btn.primary` (`--accent-fill`, white text,
-`--shadow-accent`), `.btn.teal` (live accent), `.btn-mini` (compact). Icons sit
+`.btn` (quiet gray fill, no border), `.btn.primary` (flat `--accent-fill`, white text), `.btn.teal` (live accent), `.btn-mini` (compact). Icons sit
 inside the button before the label with a 6px gap.
 
 ### Chips, banners, panels
 
 `.chip` (+ `.green` `.red` `.blue` `.teal` `.tag-*`), `.banner` (`.ok` `.err`
-`.coach` `.gold`, `.big` adds a 4px left rule), `.panel` (frosted glass in dark,
-solid surface in light).
+`.coach` `.gold`, `.big` adds a 4px left rule), `.panel` (solid surface, hairline border, soft shadow).

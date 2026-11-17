@@ -71,6 +71,7 @@ function Settings({ onClose }) {
       <label className="settings-row">
         <span>App theme</span>
         <select value={settings.appTheme} onChange={(e) => settings.set({ appTheme: e.target.value })}>
+          <option value="system">automatic</option>
           <option value="dark">dark</option>
           <option value="light">light</option>
         </select>
@@ -177,7 +178,17 @@ export default function App() {
     const t = setTimeout(() => { getPlayEngine().catch(() => {}); }, 400);
     return () => clearTimeout(t);
   }, []);
-  useEffect(() => { document.documentElement.dataset.theme = appTheme; }, [appTheme]);
+  // 'system' follows the device's light/dark setting live, like iOS
+  useEffect(() => {
+    const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    const apply = () => {
+      document.documentElement.dataset.theme = appTheme === 'system' ? (mq && mq.matches ? 'dark' : 'light') : appTheme;
+    };
+    apply();
+    if (appTheme !== 'system' || !mq) return undefined;
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, [appTheme]);
   useEffect(() => { document.documentElement.style.fontSize = `${uiScale || 100}%`; }, [uiScale]);
   useEffect(() => { document.documentElement.dataset.cb = cbSafe ? 'true' : 'false'; }, [cbSafe]);
   const Current = (SECTIONS.find((s) => s.id === page) || SECTIONS[0]).comp;

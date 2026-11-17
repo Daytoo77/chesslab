@@ -76,13 +76,13 @@ export default function Dashboard() {
       })()}
 
       <div className="stat-grid">
-        <div className="stat-card"><div className="v">{s.puzzleRating}</div><div className="l"><Icon name="rating" size={12} /> PUZZLE RATING<Sparkline data={s.puzzleRatingHistory} /></div></div>
-        <div className="stat-card"><div className="v">{gamesVsBots ? `+${vsTotals.w} =${vsTotals.d} −${vsTotals.l}` : '—'}</div><div className="l"><Icon name="bot" size={12} /> VS BOTS{s.bestWinElo ? ` · BEST WIN ${s.bestWinElo === 3200 ? 'MAX' : s.bestWinElo}` : ''}</div></div>
-        <div className="stat-card"><div className="v">{s.streak}<small> days</small></div><div className="l"><Icon name="streak" size={12} /> TACTICS STREAK (best: {s.bestStreak})</div></div>
+        <div className="stat-card"><div className="v">{s.puzzleRating}</div><div className="l"><Icon name="rating" size={12} /> Puzzle rating<Sparkline data={s.puzzleRatingHistory} /></div></div>
+        <div className="stat-card"><div className="v">{gamesVsBots ? `+${vsTotals.w} =${vsTotals.d} −${vsTotals.l}` : '—'}</div><div className="l"><Icon name="bot" size={12} /> Vs bots{s.bestWinElo ? ` · best win ${s.bestWinElo === 3200 ? 'MAX' : s.bestWinElo}` : ''}</div></div>
+        <div className="stat-card"><div className="v">{s.streak}<small> days</small></div><div className="l"><Icon name="streak" size={12} /> Tactics streak (best: {s.bestStreak})</div></div>
         <div className="stat-card"><div className="v">{solvedToday}<small> / 3</small></div><div className="l">TODAY'S PUZZLES</div></div>
-        <div className="stat-card"><div className="v">{s.rushBest}</div><div className="l"><Icon name="rush" size={12} /> TIME RUSH RECORD</div></div>
+        <div className="stat-card"><div className="v">{s.rushBest}</div><div className="l"><Icon name="rush" size={12} /> Time Rush record</div></div>
         <div className="stat-card"><div className="v">{s.tacticsSolved}</div><div className="l">PUZZLES SOLVED{accuracy != null ? ` · ${accuracy}% first-try` : ''}</div></div>
-        <div className="stat-card"><div className="v">{dueLines}</div><div className="l"><Icon name="due" size={12} /> LINES DUE FOR REVIEW (SRS)</div></div>
+        <div className="stat-card"><div className="v">{dueLines}</div><div className="l"><Icon name="due" size={12} /> Lines due for review (SRS)</div></div>
         <div className="stat-card"><div className="v">{studied}<small> / {totalLines}</small></div><div className="l">LINES STUDIED</div></div>
         <div className="stat-card"><div className="v">{quizzed}<small> / {totalLines}</small></div><div className="l">LINES QUIZ-TESTED</div></div>
         <div className="stat-card"><div className="v">{s.gamesAnalyzed}</div><div className="l">GAMES ANALYZED</div></div>

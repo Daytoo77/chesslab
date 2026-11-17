@@ -5,6 +5,7 @@ ChessLab is a personal chess training app (React + Vite) with an offline game re
 ## v25 — one design system, no emoji
 - **Design tokens.** `src/index.css` now reads from a single "Slate" token set (colour, alpha ladder, type scale in rem, 2/4px spacing grid, radii, shadows, motion). Old purple-theme leftovers are gone, light mode is driven by the same tokens, and **Settings › Text size** now actually scales text. Documented in [`design-system/chesslab/MASTER.md`](design-system/chesslab/MASTER.md).
 - **Icons instead of emoji.** Every emoji and decorative glyph in the UI is replaced by a stroke icon from [lucide-react](https://lucide.dev) through one registry (`src/components/Icon.jsx`), or by plain text. Chess glyphs stay where they are notation (board, figurine move lists, `!!`/`?` marks).
+- **Apple-clean finish.** Neutral Apple grays, one flat blue accent, SF system font, hairline separators and soft shadows. No glow, no gradients on buttons, no uppercase tracked labels. Theme is now **Automatic** by default (follows the device's light/dark setting live); Dark and Light remain in Settings.
 - **Generated bot avatars** (monogram tile, hue from Elo, strength meter) replace the animal emoji.
 - **review-core:** `MOTIF_META` keeps labels and advice only; icons are a UI concern. No change to classification or accuracy output (`golden.json` untouched).
 

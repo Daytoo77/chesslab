@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import Board from '../components/Board.jsx';
 import CoachChat from '../components/CoachChat.jsx';
+import Icon from '../components/Icon.jsx';
+import SideDot from '../components/SideDot.jsx';
 import { buildOpeningContext } from '@chesslab/review-core';
 import { findTrapLines } from '../curriculum.js';
 import { OPENINGS } from '../data/openings.js';
@@ -263,37 +265,37 @@ export default function Openings() {
   const getMoves = activeGame ? (sq) => { try { return activeGame.moves({ square: sq, verbose: true }); } catch { return []; } } : null;
   const dueCount = ALL.reduce((acc, o) => acc + o.lines.filter((l) => lineDue(srs, l.id)).length, 0);
   const OP_TABS = mode === 'quiz'
-    ? [['lines', '📖 Lines'], ['quiz', '⚔ Quiz']]
+    ? [['lines', 'Lines', 'book'], ['quiz', 'Quiz', 'quiz']]
     : mode === 'play'
-    ? [['lines', '📖 Lines'], ['play', '♟ Test']]
-    : [['lines', '📖 Lines'], ['moves', '☰ Moves'], ['idea', '💡 Idea'], ['coach', '🧑‍🏫 Coach']];
+    ? [['lines', 'Lines', 'book'], ['play', 'Test', 'test']]
+    : [['lines', 'Lines', 'book'], ['moves', 'Moves', 'moves'], ['idea', 'Idea', 'idea'], ['coach', 'Coach', 'coach']];
 
   return (
     <div>
       <h1 className="page-title">Opening <span className="accent">Explorer</span></h1>
       <p className="page-sub">
         Annotated repertoire + quiz with spaced repetition. <span className="chip blue">{dueCount} line{dueCount !== 1 ? 's' : ''} due today</span>
-        {dueCount > 0 && !drill && <button className="btn primary" style={{ marginLeft: 10, padding: '4px 14px' }} onClick={startDrill}>🔁 Daily drill ({dueCount})</button>}
+        {dueCount > 0 && !drill && <button className="btn primary" style={{ marginLeft: 10, padding: '4px 14px' }} onClick={startDrill}><Icon name="repeat" size={15} /> Daily drill ({dueCount})</button>}
         {drill && !drill.done && <span className="chip gold-chip" style={{ marginLeft: 10 }}>Drill {drill.idx + 1}/{drill.items.length}</span>}
-        {drill && <button className="btn" style={{ marginLeft: 8, padding: '4px 12px' }} onClick={stopDrill}>✕ Stop drill</button>}
+        {drill && <button className="btn" style={{ marginLeft: 8, padding: '4px 12px' }} onClick={stopDrill}><Icon name="close" size={15} /> Stop drill</button>}
       </p>
       {drill && drill.done && (
         <div className="banner ok big" style={{ marginBottom: 14 }}>
-          🏁 Daily drill complete — {drill.items.length} line{drill.items.length > 1 ? 's' : ''}, average <b>{Math.round(drill.scores.reduce((a, b) => a + b, 0) / Math.max(1, drill.scores.length))}%</b>, {drill.scores.filter((s) => s === 100).length} flawless. The SRS has rescheduled everything — come back tomorrow.
+          <Icon name="done" size={18} /> Daily drill complete — {drill.items.length} line{drill.items.length > 1 ? 's' : ''}, average <b>{Math.round(drill.scores.reduce((a, b) => a + b, 0) / Math.max(1, drill.scores.length))}%</b>, {drill.scores.filter((s) => s === 100).length} flawless. The SRS has rescheduled everything — come back tomorrow.
         </div>
       )}
 
       <div className="tabs">
         {ALL.map((o) => (
           <button key={o.id} className={`tab ${o.id === openingId ? 'active' : ''}`} onClick={() => pickOpening(o.id)}>
-            {o.name} {o.color === 'w' ? '⚪' : '⚫'}
+            <SideDot side={o.color} /> {o.name}
           </button>
         ))}
         <button className={`tab ${mode === 'vault' ? 'active' : ''}`} onClick={() => setMode('vault')} style={{ marginLeft: 'auto' }}>
-          📂 My games
+          <Icon name="folder" size={15} /> My games
         </button>
         <button className={`tab ${mode === 'import' ? 'active' : ''}`} onClick={() => setMode('import')}>
-          ＋ Import PGN
+          <Icon name="add" size={15} /> Import PGN
         </button>
       </div>
 
@@ -317,7 +319,7 @@ export default function Openings() {
               {customLines.map((l) => (
                 <p key={l.id} className="small" style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>{l.name} ({l.moves.length} plies)</span>
-                  <button className="btn" style={{ padding: '2px 10px' }} onClick={() => removeCustomLine(l.id)}>✕</button>
+                  <button className="btn" style={{ padding: '2px 10px' }} onClick={() => removeCustomLine(l.id)} aria-label="Remove line"><Icon name="close" size={14} /></button>
                 </p>
               ))}
             </div>
@@ -340,15 +342,15 @@ export default function Openings() {
                 if (JSON.stringify(cur) !== JSON.stringify(arrs)) setLineArrows(key, arrs);
               } : undefined} />
             <div className="btn-row" style={{ justifyContent: 'center' }}>
-              <button className="btn" onClick={() => setFlipped(!flipped)}>⇅ Flip</button>
+              <button className="btn" onClick={() => setFlipped(!flipped)}><Icon name="flip" size={16} /> Flip</button>
               {mode === 'study' && (
                 <>
-                  <button className="btn" disabled={ply === 0} onClick={() => setPly(0)}>⏮</button>
-                  <button className="btn" disabled={ply === 0} onClick={() => setPly(ply - 1)}>◀</button>
-                  <button className="btn" disabled={ply >= line.moves.length} onClick={() => setPly(ply + 1)}>▶</button>
-                  <button className="btn" disabled={ply >= line.moves.length} onClick={() => setPly(line.moves.length)}>⏭</button>
+                  <button className="btn" disabled={ply === 0} aria-label="Start of line" onClick={() => setPly(0)}><Icon name="first" size={18} /></button>
+                  <button className="btn" disabled={ply === 0} aria-label="Previous move" onClick={() => setPly(ply - 1)}><Icon name="prev" size={18} /></button>
+                  <button className="btn" disabled={ply >= line.moves.length} aria-label="Next move" onClick={() => setPly(ply + 1)}><Icon name="next" size={18} /></button>
+                  <button className="btn" disabled={ply >= line.moves.length} aria-label="End of line" onClick={() => setPly(line.moves.length)}><Icon name="last" size={18} /></button>
                   <button className="btn primary" onClick={startQuiz}>Quiz me</button>
-                  <button className="btn" onClick={() => startPlay(studyGame.fen())}>▶ Play vs Coach</button>
+                  <button className="btn" onClick={() => startPlay(studyGame.fen())}><Icon name="play" size={16} /> Play vs Coach</button>
                 </>
               )}
               {mode === 'quiz' && (
@@ -360,7 +362,7 @@ export default function Openings() {
               )}
               {mode === 'play' && (
                 <>
-                  <button className="btn" onClick={() => setMode('study')}>← Back to study</button>
+                  <button className="btn" onClick={() => setMode('study')}><Icon name="back" size={16} /> Back to study</button>
                   {thinking && <span className="chip blue">coach thinking…</span>}
                   {playEval != null && <span className="chip">{playEval > 0 ? '+' : ''}{(playEval / 100).toFixed(1)}</span>}
                   {playGame.current.isGameOver() && <span className="chip gold-chip">{playGame.current.isCheckmate() ? (playGame.current.turn() === userColor ? 'Coach mates you' : 'You win!') : 'Draw'}</span>}
@@ -372,8 +374,8 @@ export default function Openings() {
 
           <div className="az-panel">
             <div className="az-tabs">
-              {OP_TABS.map(([id, label]) => (
-                <button key={id} className={`az-tab ${panelTab === id ? 'active' : ''}`} onClick={() => setPanelTab(id)}>{label}</button>
+              {OP_TABS.map(([id, label, icon]) => (
+                <button key={id} className={`az-tab ${panelTab === id ? 'active' : ''}`} onClick={() => setPanelTab(id)}><Icon name={icon} size={16} /> <span className="az-tab-label">{label}</span></button>
               ))}
             </div>
 
@@ -384,7 +386,7 @@ export default function Openings() {
                   if (!traps.length) return null;
                   return (
                     <div className="panel" style={{ marginBottom: 14, borderColor: 'rgba(248,113,113,0.35)' }}>
-                      <h3 style={{ color: 'var(--bad)' }}>⚠️ Common traps in this opening</h3>
+                      <h3 className="h-icon" style={{ color: 'var(--bad)' }}><Icon name="warn" size={14} /> Common traps in this opening</h3>
                       <div className="card-list">
                         {traps.map((l) => (
                           <button key={l.id} className={`select-card ${l.id === lineId ? 'active' : ''}`} onClick={() => pickLine(l.id)}>
@@ -401,7 +403,7 @@ export default function Openings() {
                     {opening.lines.map((l) => (
                       <button key={l.id} className={`select-card ${l.id === lineId ? 'active' : ''}`} onClick={() => pickLine(l.id)}>
                         <div className="t">
-                          {l.name} {linesStudied[l.id] ? '✓' : ''}
+                          {l.name} {linesStudied[l.id] ? <Icon name="check" size={14} strokeWidth={3} className="ok-ink" /> : null}
                         </div>
                         <div className="d">
                           <span className={`chip ${lineDue(srs, l.id) ? 'red' : 'green'}`} style={{ marginRight: 6 }}>{srsLabel(srs, l.id)}</span>
@@ -435,7 +437,7 @@ export default function Openings() {
                 <h3>The idea</h3>
                 {curMove ? (
                   curMove.why
-                    ? <div className="banner coach big"><b style={{ color: 'var(--gold-soft)' }}>{Math.floor((ply - 1) / 2) + 1}{(ply - 1) % 2 === 0 ? '.' : '...'} {curMove.san}</b> — {curMove.why}</div>
+                    ? <div className="banner coach big"><b style={{ color: 'var(--accent-soft)' }}>{Math.floor((ply - 1) / 2) + 1}{(ply - 1) % 2 === 0 ? '.' : '...'} {curMove.san}</b> — {curMove.why}</div>
                     : <p className="small muted">A natural developing move — step forward for the next key idea.</p>
                 ) : (
                   <p className="small" style={{ lineHeight: 1.65 }}>{opening.summary}</p>
@@ -444,8 +446,8 @@ export default function Openings() {
                   <div className="banner gold big" style={{ marginTop: 10 }}>
                     Line complete. Now prove you understand the position, not just the moves:
                     <div className="btn-row">
-                      <button className="btn primary" onClick={() => startPlay(studyGame.fen())}>▶ Play vs Coach</button>
-                      <button className="btn" onClick={() => requestPlay(studyGame.fen(), userColor, `${opening.name} — ${line.name}`)}>🤖 Play vs a Bot from here</button>
+                      <button className="btn primary" onClick={() => startPlay(studyGame.fen())}><Icon name="play" size={16} /> Play vs Coach</button>
+                      <button className="btn" onClick={() => requestPlay(studyGame.fen(), userColor, `${opening.name} — ${line.name}`)}><Icon name="bot" size={16} /> Play vs a Bot from here</button>
                     </div>
                   </div>
                 )}
@@ -470,12 +472,12 @@ export default function Openings() {
             {panelTab === 'quiz' && mode === 'quiz' && (
               <div className="panel">
                 <h3>Quiz — {userColor === 'w' ? 'White' : 'Black'} repertoire</h3>
-                {quizWrong && <div className="banner err big">✗ Not the repertoire move — try again.</div>}
+                {quizWrong && <div className="banner err big">Not the repertoire move — try again.</div>}
                 {quizMsg && !quizWrong && !quizDoneFlag && <div className="banner coach big" style={{ marginTop: 8 }}>{quizMsg}</div>}
                 {quizDoneFlag && (
                   <div className="banner ok big" style={{ marginTop: 8 }}>
                     Line complete — {quizErrors === 0 ? 'flawless. Next review scheduled automatically (SRS).' : `${quizErrors} slip${quizErrors > 1 ? 's' : ''} — it comes back tomorrow.`}
-                    <div className="btn-row"><button className="btn primary" onClick={() => startPlay(quizGame.current.fen())}>▶ Play on vs Coach</button></div>
+                    <div className="btn-row"><button className="btn primary" onClick={() => startPlay(quizGame.current.fen())}><Icon name="play" size={16} /> Play on vs Coach</button></div>
                   </div>
                 )}
               </div>

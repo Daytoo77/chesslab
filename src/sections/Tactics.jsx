@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import Board from '../components/Board.jsx';
+import Icon from '../components/Icon.jsx';
 import { PUZZLES } from '../data/puzzles.js';
 import { useStats, dayKey } from '../store.js';
 import { useUi } from '../settings.js';
@@ -262,23 +263,23 @@ export default function Tactics() {
         {dailyIdx.map((idx, i) => (
           <button key={i} className={`tab ${mode === 'daily' && pIdx === idx ? 'active' : ''}`}
             onClick={() => { setMode('daily'); setRushOn(false); setWoodOn(false); selectPuzzle(idx); }}>
-            Daily {i + 1} {solvedSet.includes(PUZZLES[idx].id) ? '✓' : ''}
+            Daily {i + 1} {solvedSet.includes(PUZZLES[idx].id) ? <Icon name="check" size={14} strokeWidth={3} /> : null}
           </button>
         ))}
         <button className={`tab ${mode === 'practice' ? 'active' : ''}`} onClick={() => { setMode('practice'); setRushOn(false); setWoodOn(false); }}>
           Practice
         </button>
         <button className={`tab ${mode === 'rush' ? 'active' : ''}`} onClick={startRush}>
-          ⚡ Time Rush
+          <Icon name="rush" size={16} /> Time Rush
         </button>
         <button className={`tab ${mode === 'wood' ? 'active' : ''}`} onClick={() => { setMode('wood'); setRushOn(false); if (!woodOn) setWoodIdx(0); }}>
-          🪵 Woodpecker
+          <Icon name="repeat" size={16} /> Woodpecker
         </button>
         <button className={`tab ${mode === 'mine' ? 'active' : ''}`} onClick={() => { setMode('mine'); setRushOn(false); setWoodOn(false); if (myPuzzles.length) selectPuzzle(0); }}>
-          💥 My blunders {myPuzzles.length ? `(${myPuzzles.length})` : ''}
+          <Icon name="blunders" size={16} /> My blunders {myPuzzles.length ? `(${myPuzzles.length})` : ''}
         </button>
-        <span style={{ marginLeft: 'auto' }} className="chip gold-chip">⚡ {puzzleRating}</span>
-        <span className="chip">🔥 {streak}d streak</span>
+        <span style={{ marginLeft: 'auto' }} className="chip gold-chip"><Icon name="rating" size={12} /> {puzzleRating}</span>
+        <span className="chip"><Icon name="streak" size={12} /> {streak}d streak</span>
         <span className="chip blue">rush best: {rushBest}</span>
       </div>
 
@@ -295,7 +296,7 @@ export default function Tactics() {
               onClick={() => {
                 const idx = pickNext(source, recentPuzzleIds);
                 if (idx >= 0) { noteShownPuzzle(source[idx].id); selectPuzzle(idx); }
-              }}>🎲 Next in tier</button>
+              }}><Icon name="dice" size={16} /> Next in tier</button>
           </div>
           {!source.length ? (
             <p className="small muted">No puzzles in this tier yet — try a wider difficulty.</p>
@@ -325,7 +326,7 @@ export default function Tactics() {
               <div className="t">{p.title || `Blunder ${i + 1}`}</div>
               <div className="d">{p.date} · find the move you missed</div>
               <button className="btn" style={{ position: 'absolute', top: 6, right: 6, padding: '0 8px' }}
-                onClick={(e) => { e.stopPropagation(); removeMyPuzzle(p.id); if (pIdx >= myPuzzles.length - 1) selectPuzzle(0); }}>✕</button>
+                onClick={(e) => { e.stopPropagation(); removeMyPuzzle(p.id); if (pIdx >= myPuzzles.length - 1) selectPuzzle(0); }} aria-label="Remove puzzle"><Icon name="close" size={14} /></button>
             </div>
           ))}
         </div>
@@ -333,7 +334,7 @@ export default function Tactics() {
 
       {mode === 'wood' && !woodOn && (
         <div className="panel" style={{ maxWidth: 640, marginBottom: 16 }}>
-          <h3>🪵 The Woodpecker Method</h3>
+          <h3 className="h-icon"><Icon name="repeat" size={14} /> The Woodpecker Method</h3>
           <p className="small" style={{ lineHeight: 1.6 }}>
             Solve the SAME {PUZZLES.length} puzzles in one sitting, cycle after cycle (one per day max). Goal: each cycle faster and cleaner than the last —
             that's pattern recognition being burned in. Median gain at your level: <b>+70 Elo</b>.
@@ -350,12 +351,12 @@ export default function Tactics() {
               </div>
               <p className="small muted" style={{ marginTop: 8 }}>
                 Last cycle: {fmtMs(lastCycle.ms)} with {lastCycle.errors} error{lastCycle.errors !== 1 ? 's' : ''}.
-                {cycles.length >= 2 && cycles[cycles.length - 1].ms < cycles[cycles.length - 2].ms ? ' Faster than the previous one — it\'s working. 📈' : ''}
+                {cycles.length >= 2 && cycles[cycles.length - 1].ms < cycles[cycles.length - 2].ms ? ' Faster than the previous one — it\'s working.' : ''}
               </p>
             </>
           )}
           <div className="btn-row">
-            <button className="btn primary" onClick={startWood}>▶ Start cycle {cycles.length + 1}</button>
+            <button className="btn primary" onClick={startWood}>Start cycle {cycles.length + 1} <Icon name="next" size={16} /></button>
           </div>
         </div>
       )}
@@ -365,22 +366,22 @@ export default function Tactics() {
           <div className="board-col">
             {mode === 'rush' && (
               <div className={`rush-bar ${rushLeft <= 15 ? 'danger' : ''}`}>
-                <span>⏱ {Math.floor(rushLeft / 60)}:{String(rushLeft % 60).padStart(2, '0')}</span>
+                <span className="with-icon"><Icon name="rush" size={16} /> {Math.floor(rushLeft / 60)}:{String(rushLeft % 60).padStart(2, '0')}</span>
                 <span>score: <b>{rushScore}</b></span>
                 {!rushOn && rushLeft === 0 && <span className="chip gold-chip">final: {rushScore}</span>}
               </div>
             )}
             {mode === 'wood' && woodOn && (
               <div className="rush-bar">
-                <span>🪵 {woodIdx + 1}/{PUZZLES.length}</span>
-                <span>⏱ {fmtMs(woodNow - woodStart.current)}</span>
+                <span className="with-icon"><Icon name="repeat" size={16} /> {woodIdx + 1}/{PUZZLES.length}</span>
+                <span className="with-icon"><Icon name="rush" size={16} /> {fmtMs(woodNow - woodStart.current)}</span>
                 <span>errors: <b>{woodErrors}</b></span>
               </div>
             )}
             <Board fen={curFen} onDrop={onDrop} orientation={flipped ? (side === 'white' ? 'black' : 'white') : side}
               lastMove={lastMove} getMoves={getMoves} />
             <div className="btn-row" style={{ justifyContent: 'center' }}>
-              <button className="btn" onClick={() => setFlipped(!flipped)}>⇅ Flip</button>
+              <button className="btn" onClick={() => setFlipped(!flipped)}><Icon name="flip" size={16} /> Flip</button>
               {(mode === 'daily' || mode === 'practice' || mode === 'mine') && !finished && <button className="btn" onClick={() => setHint(true)}>Hint</button>}
               {(mode === 'daily' || mode === 'practice' || mode === 'mine') && !finished && <button className="btn" onClick={reveal}>Reveal</button>}
               {(mode === 'daily' || mode === 'practice' || mode === 'mine') && finished && <button className="btn" onClick={() => selectPuzzle(pIdx)}>Replay</button>}
@@ -389,7 +390,7 @@ export default function Tactics() {
                 <button className="btn primary" onClick={() => {
                   const cur = dailyIdx.indexOf(pIdx);
                   if (cur > -1 && cur < 2) selectPuzzle(dailyIdx[cur + 1]);
-                }}>Next →</button>
+                }}>Next <Icon name="next" size={16} /></button>
               )}
             </div>
           </div>
@@ -402,11 +403,11 @@ export default function Tactics() {
                 : mode === 'wood'
                   ? <p className="muted small">Same set, every cycle. Speed comes from recognition, not rushing — errors count too.</p>
                   : <p className="muted small">{mode !== 'mine' && <span className="chip" style={{ marginRight: 8 }}>~{puzzleElo(puzzle)}</span>}{side === 'white' ? 'White' : 'Black'} to move. Click or drag — legal moves light up.</p>}
-              {wrong && <div className="banner err big" style={{ marginTop: 8 }}>✗ Not that one{mode === 'rush' ? ' — −10 seconds!' : mode === 'wood' ? ' — +1 error, keep going.' : '. Checks, captures, threats — in that order.'}</div>}
-              {status === 'solved' && <div className="banner ok big" style={{ marginTop: 8 }}>✓ Solved. Pattern banked.</div>}
+              {wrong && <div className="banner err big" style={{ marginTop: 8 }}>Not that one{mode === 'rush' ? ' — −10 seconds!' : mode === 'wood' ? ' — +1 error, keep going.' : '. Checks, captures, threats — in that order.'}</div>}
+              {status === 'solved' && <div className="banner ok big" style={{ marginTop: 8 }}><Icon name="done" size={18} /> Solved. Pattern banked.</div>}
               {status === 'revealed' && <div className="banner gold big" style={{ marginTop: 8 }}>Solution shown — replay it once from memory.</div>}
               {hint && !finished && (mode === 'daily' || mode === 'practice' || mode === 'mine') && (
-                <div className="banner coach big" style={{ marginTop: 10 }}>💡 <b>Hint:</b> {puzzle.hint || 'You played something else in the game — find the move you missed.'}</div>
+                <div className="banner coach big" style={{ marginTop: 10 }}><Icon name="hint" size={16} /> <b>Hint:</b> {puzzle.hint || 'You played something else in the game — find the move you missed.'}</div>
               )}
             </div>
 
@@ -425,7 +426,7 @@ export default function Tactics() {
                 {worstMotifs.map((m) => (
                   <p key={m.motif} className="small" style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span className="muted">{m.motif}</span>
-                    <b style={{ color: m.pct < 60 ? 'var(--bad)' : 'var(--gold-soft)' }}>{m.pct}% ({m.tries})</b>
+                    <b style={{ color: m.pct < 60 ? 'var(--bad)' : 'var(--accent-soft)' }}>{m.pct}% ({m.tries})</b>
                   </p>
                 ))}
               </div>
@@ -436,7 +437,7 @@ export default function Tactics() {
 
       {mode === 'wood' && !woodOn && cycles.length > 0 && lastCycle.date === dayKey() && (
         <div className="banner ok big" style={{ maxWidth: 640 }}>
-          🏁 Cycle {cycles.length} done today: {fmtMs(lastCycle.ms)}, {lastCycle.errors} error{lastCycle.errors !== 1 ? 's' : ''}. Rest — repetition works BETWEEN sessions. Next cycle tomorrow.
+          <Icon name="done" size={16} /> Cycle {cycles.length} done today: {fmtMs(lastCycle.ms)}, {lastCycle.errors} error{lastCycle.errors !== 1 ? 's' : ''}. Rest — repetition works BETWEEN sessions. Next cycle tomorrow.
         </div>
       )}
     </div>

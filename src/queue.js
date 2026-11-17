@@ -16,7 +16,7 @@ export function buildDailyQueue({
   const q = [];
   if (dueLines > 0) {
     q.push({
-      id: 'openings-due', icon: '♜', page: 'openings',
+      id: 'openings-due', icon: 'openings', page: 'openings',
       label: `Review ${dueLines} due opening line${dueLines > 1 ? 's' : ''}`,
       sub: 'Spaced repetition works only if you show up on the due day.',
       score: 3 + Math.min(dueLines, 5) * 0.4,
@@ -25,7 +25,7 @@ export function buildDailyQueue({
   const remaining = Math.max(0, dailyTacticGoal - solvedToday);
   if (remaining > 0) {
     q.push({
-      id: 'tactics-goal', icon: '⚔', page: 'tactics',
+      id: 'tactics-goal', icon: 'tactics', page: 'tactics',
       label: `Solve ${remaining} more tactic${remaining > 1 ? 's' : ''}`,
       sub: solvedToday > 0 ? `${solvedToday} down — keep the streak alive.` : 'The daily habit that moves ratings most.',
       score: 2 + Math.min(remaining, 10) * 0.15,
@@ -34,7 +34,7 @@ export function buildDailyQueue({
   if (topWeakness && MOTIF_META[topWeakness[0]]) {
     const mm = MOTIF_META[topWeakness[0]];
     q.push({
-      id: 'weakness-drill', icon: mm.icon, page: 'tactics', motif: topWeakness[0],
+      id: 'weakness-drill', icon: topWeakness[0], page: 'tactics', motif: topWeakness[0],
       label: `Drill your #1 leak: ${mm.label.toLowerCase()}`,
       sub: mm.advice,
       // recurring recently = urgent; a leak from months ago matters less
@@ -43,7 +43,7 @@ export function buildDailyQueue({
   }
   if (!analyzedToday) {
     q.push({
-      id: 'analyze', icon: '⚡', page: 'analyzer',
+      id: 'analyze', icon: 'analyzer', page: 'analyzer',
       label: 'Analyze one of your games',
       sub: 'Especially a loss — that is where the rating points hide.',
       score: 2.0,
@@ -51,7 +51,7 @@ export function buildDailyQueue({
   }
   if (!slowGameToday) {
     q.push({
-      id: 'slow-game', icon: '♞', page: 'play',
+      id: 'slow-game', icon: 'play', page: 'play',
       label: 'Play one slow game',
       sub: '10 minutes or longer — blitz teaches habits, slow chess teaches thinking.',
       score: 1.5,
@@ -64,10 +64,10 @@ export function buildDailyQueue({
 // matters. Pure planning/progress math; the store holds the timestamps, so a
 // session survives reloads for free. ----
 const SESSION_SPLIT = [
-  { cat: 'tactics',  page: 'tactics',  icon: '⚔', label: 'Tactics',          share: 0.34 },
-  { cat: 'analysis', page: 'analyzer', icon: '⚡', label: 'Game review',      share: 0.33 },
-  { cat: 'openings', page: 'openings', icon: '♜', label: 'Opening lines',    share: 0.17 },
-  { cat: 'endgames', page: 'endgames', icon: '♚', label: 'Endgame drills',   share: 0.16 },
+  { cat: 'tactics',  page: 'tactics',  icon: 'tactics', label: 'Tactics',          share: 0.34 },
+  { cat: 'analysis', page: 'analyzer', icon: 'analyzer', label: 'Game review',      share: 0.33 },
+  { cat: 'openings', page: 'openings', icon: 'openings', label: 'Opening lines',    share: 0.17 },
+  { cat: 'endgames', page: 'endgames', icon: 'endgames', label: 'Endgame drills',   share: 0.16 },
 ];
 
 export function buildSession(totalMinutes) {

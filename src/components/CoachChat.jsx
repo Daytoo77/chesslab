@@ -4,6 +4,7 @@
 // send-time so follow-up questions always track the board.
 import React, { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../settings.js';
+import Icon from './Icon.jsx';
 import { askCoach } from '../coach.js';
 
 const DEFAULT_SUGG = [
@@ -54,7 +55,7 @@ export default function CoachChat({
   if (!geminiKey) {
     return (
       <div className="panel coach-chat">
-        <h3>🧑‍🏫 AI Coach</h3>
+        <h3 className="h-icon"><Icon name="coach" size={14} /> AI Coach</h3>
         <p className="small muted" style={{ marginTop: 0 }}>
           {keyBlurb} Paste a Google AI Studio API key — it is stored <b>only in this browser</b>, never in the app's code.
         </p>
@@ -71,15 +72,15 @@ export default function CoachChat({
   return (
     <div className="panel coach-chat">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-        <h3 style={{ margin: 0 }}>🧑‍🏫 AI Coach <span className="chip teal" style={{ marginLeft: 6 }}>{badge}</span></h3>
+        <h3 className="h-icon" style={{ margin: 0 }}><Icon name="coach" size={14} /> AI Coach <span className="chip teal" style={{ marginLeft: 6 }}>{badge}</span></h3>
         {msgs.length > 0 && <button className="btn btn-mini" onClick={() => { setMsgs([]); setError(null); }}>Clear</button>}
       </div>
       <div className="coach-log" ref={logRef}>
         {msgs.length === 0 && <p className="small muted" style={{ margin: '8px 0' }}>{intro}</p>}
         {msgs.map((m, i) => <div key={i} className={`coach-msg ${m.role}`}>{m.text}</div>)}
-        {busy && <div className="coach-msg coach"><span className="thinking-dots"><span>●</span><span>●</span><span>●</span></span></div>}
+        {busy && <div className="coach-msg coach"><span className="thinking-dots"><span /><span /><span /></span></div>}
       </div>
-      {error && <div className="small" style={{ color: 'var(--bad)', margin: '4px 0 8px' }}>⚠ {error}</div>}
+      {error && <div className="small" style={{ color: 'var(--bad)', margin: '4px 0 8px' }}><Icon name="warn" size={14} /> {error}</div>}
       {msgs.length === 0 && !busy && (
         <div className="coach-sugg">
           {suggestions.map((s) => <button key={s} className="chip" onClick={() => send(s)}>{s}</button>)}

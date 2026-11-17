@@ -6,6 +6,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useStats, dayKey, weekKeys, weekStudy, weaknessTop, weaknessRecent, lineDue, STUDY_CATS } from '../store.js';
 import { MOTIF_META } from '@chesslab/review-core';
+import Icon from '../components/Icon.jsx';
+import { ChevronDown } from 'lucide-react';
 import { buildDailyQueue, buildSession, sessionProgress } from '../queue.js';
 import { OPENINGS } from '../data/openings.js';
 import { mergeOpenings } from '../data/openings2.js';
@@ -104,8 +106,8 @@ export default function Train() {
 
   const habits = [
     { done: tacticPct >= 100, label: `Solve ${s.dailyTacticGoal} tactics`, sub: `${solvedToday} / ${s.dailyTacticGoal} today`, page: 'tactics', pct: tacticPct },
-    { done: slowGameDone, label: 'Play one slow game', sub: slowGameDone ? 'done today ✓' : '15|10 or longer', page: 'play', pct: slowGameDone ? 100 : 0 },
-    { done: analyzedToday, label: 'Analyse a game', sub: analyzedToday ? 'done today ✓' : 'especially a loss', page: 'analyzer', pct: analyzedToday ? 100 : 0 },
+    { done: slowGameDone, label: 'Play one slow game', sub: slowGameDone ? 'done today' : '15|10 or longer', page: 'play', pct: slowGameDone ? 100 : 0 },
+    { done: analyzedToday, label: 'Analyse a game', sub: analyzedToday ? 'done today' : 'especially a loss', page: 'analyzer', pct: analyzedToday ? 100 : 0 },
   ];
   const habitsDone = habits.filter((h) => h.done).length;
 
@@ -122,7 +124,7 @@ export default function Train() {
         {!s.session ? (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
             <div>
-              <h3 style={{ margin: 0 }}>⏱ Training session</h3>
+              <h3 className="h-icon" style={{ margin: 0 }}><Icon name="rush" size={14} /> Training session</h3>
               <p className="small muted" style={{ margin: '4px 0 0' }}>A guided block: tactics → game review → openings → endgames. Time is logged to your weekly plan automatically.</p>
             </div>
             <div className="btn-row" style={{ marginTop: 0 }}>
@@ -133,29 +135,29 @@ export default function Train() {
           </div>
         ) : prog && prog.done ? (
           <div className="banner ok big">
-            🏁 <b>Session complete — {prog.totalMin} minutes.</b> Every segment is being logged to your weekly plan.
+            <Icon name="done" size={18} /> <b>Session complete — {prog.totalMin} minutes.</b> Every segment is being logged to your weekly plan.
             <div className="btn-row">
-              <button className="btn primary" onClick={() => s.endSession(prog.perCat)}>Log it ✓</button>
+              <button className="btn primary" onClick={() => s.endSession(prog.perCat)}><Icon name="check" size={16} /> Log it</button>
             </div>
           </div>
         ) : (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
-              <h3 style={{ margin: 0 }}>⏱ Session running <span className="chip teal" style={{ marginLeft: 6 }}>{Math.round(prog.elapsedMin)} / {prog.totalMin} min</span></h3>
-              <button className="btn btn-mini" onClick={() => s.endSession(prog.perCat)}>■ End early (logs {Math.round(prog.elapsedMin)} min)</button>
+              <h3 className="h-icon" style={{ margin: 0 }}><Icon name="rush" size={14} /> Session running <span className="chip teal" style={{ marginLeft: 6 }}>{Math.round(prog.elapsedMin)} / {prog.totalMin} min</span></h3>
+              <button className="btn btn-mini" onClick={() => s.endSession(prog.perCat)}>End early (logs {Math.round(prog.elapsedMin)} min)</button>
             </div>
             <div className="progressbar" style={{ marginTop: 10 }}><div style={{ width: `${prog.pct}%` }} /></div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
               {s.session.segments.map((seg, i) => {
                 const state = prog.current === i ? 'now' : i < (prog.current ?? s.session.segments.length) ? 'done' : 'next';
                 return (
-                  <div key={seg.cat} className="queue-item" style={{ opacity: state === 'next' ? 0.55 : 1, borderColor: state === 'now' ? 'var(--gold)' : undefined }}>
-                    <span className="queue-icon">{state === 'done' ? '✓' : seg.icon}</span>
+                  <div key={seg.cat} className="queue-item" style={{ opacity: state === 'next' ? 0.55 : 1, borderColor: state === 'now' ? 'var(--accent)' : undefined }}>
+                    <span className="queue-icon"><Icon name={state === 'done' ? 'done' : seg.icon} fallback={seg.page} size={18} /></span>
                     <span style={{ flex: 1 }}>
                       <b>{seg.label}</b>
                       <span className="small muted"> — {seg.minutes} min{state === 'now' ? ` · ${Math.max(1, Math.round(seg.minutes - prog.segElapsed))} left` : ''}</span>
                     </span>
-                    {state === 'now' && <button className="btn btn-mini primary" onClick={() => setPage(seg.page)}>Go →</button>}
+                    {state === 'now' && <button className="btn btn-mini primary" onClick={() => setPage(seg.page)}>Go <Icon name="next" size={14} /></button>}
                   </div>
                 );
               })}
@@ -166,20 +168,20 @@ export default function Train() {
 
       {/* ---------- Do this now — the personalized queue ---------- */}
       <div className="panel" style={{ marginBottom: 16 }}>
-        <h3>🎯 Do this now <span className="muted" style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 500 }}>— ranked by what moves your rating today</span></h3>
+        <h3 className="h-icon"><Icon name="focus" size={14} /> Do this now <span className="muted" style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 500 }}>— ranked by what moves your rating today</span></h3>
         {queue.length === 0 ? (
-          <p className="small" style={{ color: 'var(--good)', margin: '10px 0 0' }}>✓ Everything done — goals hit, nothing due, habits complete. Enjoy a casual game.</p>
+          <p className="small" style={{ color: 'var(--good)', margin: '10px 0 0' }}><Icon name="done" size={15} /> Everything done — goals hit, nothing due, habits complete. Enjoy a casual game.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
             {queue.map((t, i) => (
               <div key={t.id} className="queue-item">
                 <span className="queue-rank">{i + 1}</span>
-                <span className="queue-icon">{t.icon}</span>
+                <span className="queue-icon"><Icon name={t.icon} fallback={t.page} size={18} /></span>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <b>{t.label}</b>
                   <span className="small muted"> — {t.sub}</span>
                 </span>
-                <button className="btn btn-mini" onClick={() => goQueue(t)}>Go →</button>
+                <button className="btn btn-mini" onClick={() => goQueue(t)}>Go <Icon name="next" size={14} /></button>
               </div>
             ))}
           </div>
@@ -190,11 +192,11 @@ export default function Train() {
       {topMeta && (
         <div className="panel" style={{ marginBottom: 16, borderColor: 'rgba(248,113,113,0.4)' }}>
           <h3 style={{ color: 'var(--bad)' }}>Your #1 leak — fix this first</h3>
-          <p style={{ margin: '0 0 4px' }}><span style={{ fontSize: 18, marginRight: 6 }}>{topMeta.icon}</span><b>{topMeta.label}</b> <span className="muted">· flagged {topWeak[1]}× across your analyzed games</span></p>
+          <p style={{ margin: '0 0 4px' }}><Icon name={topWeak[0]} size={18} className="inline-icon" /> <b>{topMeta.label}</b> <span className="muted">· flagged {topWeak[1]}× across your analyzed games</span></p>
           <p className="small" style={{ margin: '6px 0 12px' }}>{topMeta.advice}</p>
           <div className="btn-row" style={{ marginTop: 0 }}>
-            <button className="btn btn-mini" onClick={() => setPage('tactics')}>Drill tactics →</button>
-            <button className="btn btn-mini" onClick={() => setPage('analyzer')}>Review a game →</button>
+            <button className="btn btn-mini" onClick={() => setPage('tactics')}>Drill tactics <Icon name="next" size={14} /></button>
+            <button className="btn btn-mini" onClick={() => setPage('analyzer')}>Review a game <Icon name="next" size={14} /></button>
           </div>
         </div>
       )}
@@ -208,7 +210,7 @@ export default function Train() {
             <select
               value={s.weeklyGoalH}
               onChange={(e) => s.setWeeklyGoal(+e.target.value)}
-              style={{ background: 'var(--bg2)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 7, font: 'inherit', fontSize: 13, padding: '4px 8px' }}
+              className="select-input"
             >
               {[4, 7, 10, 14, 21].map((h) => <option key={h} value={h}>{h} h / week</option>)}
             </select>
@@ -217,9 +219,9 @@ export default function Train() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: '14px 0 6px' }}>
           <span className="small muted">Logged this week</span>
-          <span className="small"><b style={{ color: totalPct >= 100 ? 'var(--good)' : 'var(--gold)' }}>{fmtMin(totalLogged)}</b> <span className="muted">/ {s.weeklyGoalH}h · {totalPct}%</span></span>
+          <span className="small"><b style={{ color: totalPct >= 100 ? 'var(--good)' : 'var(--accent)' }}>{fmtMin(totalLogged)}</b> <span className="muted">/ {s.weeklyGoalH}h · {totalPct}%</span></span>
         </div>
-        <div className="progressbar"><div style={{ width: `${totalPct}%`, background: totalPct >= 100 ? 'linear-gradient(90deg,var(--teal),var(--good))' : undefined }} /></div>
+        <div className="progressbar"><div style={{ width: `${totalPct}%`, background: totalPct >= 100 ? 'linear-gradient(90deg,var(--live),var(--good))' : undefined }} /></div>
 
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {STUDY_CATS.map((c) => {
@@ -230,7 +232,7 @@ export default function Train() {
             return (
               <div key={c.id} className="train-cat">
                 <div className="train-cat-head">
-                  <span className="train-cat-title"><span className="train-cat-icon">{c.icon}</span> {c.label} <span className="muted" style={{ fontWeight: 500 }}>· {c.pct}%</span></span>
+                  <span className="train-cat-title"><span className="train-cat-icon"><Icon name={c.icon} fallback={c.page} size={16} /></span> {c.label} <span className="muted" style={{ fontWeight: 500 }}>· {c.pct}%</span></span>
                   <span className="small" style={{ fontFamily: 'var(--mono)', color: met ? 'var(--good)' : 'var(--muted)' }}>
                     {fmtMin(got)} <span className="muted">/ {fmtMin(rec)}</span>
                   </span>
@@ -242,7 +244,7 @@ export default function Train() {
                     <button className="btn btn-mini" title="Log 15 min" onClick={() => s.logStudy(c.id, 15)}>+15m</button>
                     <button className="btn btn-mini" title="Log 30 min" onClick={() => s.logStudy(c.id, 30)}>+30m</button>
                     {got > 0 && <button className="btn btn-mini" title="Remove 15 min" onClick={() => s.logStudy(c.id, -15)}>−</button>}
-                    <button className="btn btn-mini" onClick={() => setPage(c.page)}>Go →</button>
+                    <button className="btn btn-mini" onClick={() => setPage(c.page)}>Go <Icon name="next" size={14} /></button>
                   </span>
                 </div>
               </div>
@@ -260,29 +262,29 @@ export default function Train() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 10 }}>
           <h3 style={{ margin: 0 }}>Today's habits</h3>
           <span className="small">
-            {s.streak > 0 && <span className="chip" style={{ marginRight: 8 }}>🔥 {s.streak}-day streak</span>}
+            {s.streak > 0 && <span className="chip" style={{ marginRight: 8 }}><Icon name="streak" size={12} /> {s.streak}-day streak</span>}
             <span className="muted">{puzzlesThisWeek} puzzles this week</span>
           </span>
         </div>
         <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {habits.map((h, i) => (
             <div key={i} className="habit-row">
-              <span className="habit-check" style={{ color: h.done ? 'var(--good)' : 'var(--sub)' }}>{h.done ? '✓' : '○'}</span>
+              <span className="habit-check" style={{ color: h.done ? 'var(--good)' : 'var(--sub)' }}><Icon name={h.done ? 'done' : 'pending'} size={18} /></span>
               <span style={{ flex: 1 }}>
                 <span style={{ textDecoration: h.done ? 'line-through' : 'none', color: h.done ? 'var(--muted)' : 'var(--text)', fontWeight: 600 }}>{h.label}</span>
                 <span className="small muted"> — {h.sub}</span>
               </span>
-              {!h.done && <button className="btn btn-mini" onClick={() => setPage(h.page)}>Go →</button>}
+              {!h.done && <button className="btn btn-mini" onClick={() => setPage(h.page)}>Go <Icon name="next" size={14} /></button>}
             </div>
           ))}
         </div>
-        <div className="progressbar" style={{ marginTop: 12 }}><div style={{ width: `${(habitsDone / habits.length) * 100}%`, background: habitsDone === habits.length ? 'linear-gradient(90deg,var(--teal),var(--good))' : undefined }} /></div>
+        <div className="progressbar" style={{ marginTop: 12 }}><div style={{ width: `${(habitsDone / habits.length) * 100}%`, background: habitsDone === habits.length ? 'linear-gradient(90deg,var(--live),var(--good))' : undefined }} /></div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
           <span className="small muted">Daily tactics goal</span>
           <select
             value={s.dailyTacticGoal}
             onChange={(e) => s.setDailyTacticGoal(+e.target.value)}
-            style={{ background: 'var(--bg2)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 7, font: 'inherit', fontSize: 13, padding: '3px 8px' }}
+            className="select-input"
           >
             {[5, 10, 15, 20, 30].map((n) => <option key={n} value={n}>{n} / day</option>)}
           </select>
@@ -294,7 +296,7 @@ export default function Train() {
       <div className="panel" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }} onClick={() => setOpenChecklist((o) => !o)}>
           <h3 style={{ margin: 0 }}>The thinking checklist <span className="muted" style={{ fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>— run it every move</span></h3>
-          <span className="muted">{openChecklist ? '▾' : '▸'}</span>
+          <ChevronDown size={18} className={`muted disclosure ${openChecklist ? 'open' : ''}`} aria-hidden="true" />
         </div>
         {openChecklist && (
           <>
@@ -325,7 +327,7 @@ export default function Train() {
         <div className="panel">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ margin: 0 }}>Endgame essentials</h3>
-            <button className="btn btn-mini" onClick={() => setPage('endgames')}>Drill →</button>
+            <button className="btn btn-mini" onClick={() => setPage('endgames')}>Drill <Icon name="next" size={14} /></button>
           </div>
           <dl className="defs">
             {ENDGAME_KEYS.map(([k, v]) => (
@@ -357,7 +359,7 @@ export default function Train() {
             Don't lean on the engine as a crutch: form your <i>own</i> assessment first, <i>then</i> check.
             The Game Analyzer has an "assess first" mode that hides the engine until you commit a verdict.
           </p>
-          <button className="btn" onClick={() => setPage('analyzer')}>Open the Analyzer →</button>
+          <button className="btn" onClick={() => setPage('analyzer')}>Open the Analyzer <Icon name="next" size={16} /></button>
         </div>
       </div>
     </div>

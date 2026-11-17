@@ -4,6 +4,8 @@ import Board from '../components/Board.jsx';
 import EvalBar from '../components/EvalBar.jsx';
 import ClassBadge from '../components/ClassBadge.jsx';
 import CoachChat from '../components/CoachChat.jsx';
+import Icon from '../components/Icon.jsx';
+import SideDot from '../components/SideDot.jsx';
 import {
   analyzePgn, localToUnified, buildCoachContext, narrateGame, explainPosition, MOTIF_META,
   winPct, ratingFromAccuracy, openingName, PARITY_CONFIG,
@@ -32,13 +34,13 @@ const SAMPLE_PGN = `[Event "Sample game"]
 const TAG_META = {
   brilliant: { label: '!!', cls: 'tag-brilliant', name: 'Brilliant' },
   great:     { label: '!',  cls: 'tag-great',     name: 'Great' },
-  best:      { label: '★',  cls: 'tag-best',      name: 'Best' },
+  best:      { label: '',   cls: 'tag-best',      name: 'Best' },
   excellent: { label: '',   cls: 'tag-excellent', name: 'Excellent' },
   good:      { label: '',   cls: 'tag-good',      name: 'Good' },
-  book:      { label: '📖', cls: 'tag-book',      name: 'Book' },
+  book:      { label: '',   cls: 'tag-book',      name: 'Book' },
   forced:    { label: '',   cls: 'tag-good',      name: 'Forced' },
   inaccuracy:{ label: '?!', cls: 'tag-inacc',     name: 'Inaccuracy' },
-  miss:      { label: '✗',  cls: 'tag-miss',      name: 'Miss' },
+  miss:      { label: '',   cls: 'tag-miss',      name: 'Miss' },
   mistake:   { label: '?',  cls: 'tag-mistake',   name: 'Mistake' },
   blunder:   { label: '??', cls: 'tag-blunder',   name: 'Blunder' },
 };
@@ -46,11 +48,11 @@ const LEGEND_TAGS = ['brilliant', 'great', 'best', 'excellent', 'good', 'book', 
 const QUALITY = PARITY_CONFIG.analysis.qualityMovetime;
 // right-hand workspace tabs — board stays pinned, you pick the panel you need
 const AZ_TABS = [
-  ['report', '📊 Report'],
-  ['engine', '⚙ Engine'],
-  ['mistakes', '✗ Mistakes'],
-  ['moves', '☰ Moves'],
-  ['coach', '🧑‍🏫 Coach'],
+  ['report', 'Report'],
+  ['engine', 'Engine'],
+  ['mistakes', 'Mistakes'],
+  ['moves', 'Moves'],
+  ['coach', 'Coach'],
 ];
 
 // Interactive area chart: hover to scrub (crosshair + tooltip with move, tag and
@@ -90,26 +92,26 @@ function EvalGraph({ evals, cursor, moves, onSeek }) {
         <clipPath id="eg-top"><rect x="0" y="0" width={W} height={H / 2} /></clipPath>
         <clipPath id="eg-bot"><rect x="0" y={H / 2} width={W} height={H / 2} /></clipPath>
       </defs>
-      <rect x="0" y="0" width={W} height={H} fill="#0d1526" rx="6" />
-      <polygon points={area} fill="rgba(232, 234, 240, 0.82)" clipPath="url(#eg-top)" />
-      <polygon points={area} fill="rgba(0, 0, 0, 0.5)" clipPath="url(#eg-bot)" />
-      <line x1="0" y1={H / 2} x2={W} y2={H / 2} stroke="rgba(255,255,255,0.14)" strokeWidth="1" />
-      <polyline points={pts} fill="none" stroke="#6366f1" strokeWidth="1.5" />
+      <rect className="eg-bg" x="0" y="0" width={W} height={H} rx="6" />
+      <polygon className="eg-white" points={area} clipPath="url(#eg-top)" />
+      <polygon className="eg-black" points={area} clipPath="url(#eg-bot)" />
+      <line className="eg-mid" x1="0" y1={H / 2} x2={W} y2={H / 2} strokeWidth="1" />
+      <polyline className="eg-line" points={pts} fill="none" strokeWidth="1.5" />
       {marks.map((m, i) => (
         <circle key={i} cx={x(m.i)} cy={y(evals[m.i])} r={hi === m.i ? 5 : 3.4}
-          fill={m.color} stroke="#0d1526" strokeWidth="1.2" style={{ transition: 'r 0.12s' }} />
+          className="eg-mark" strokeWidth="1.2" style={{ fill: m.color }} />
       ))}
-      <line x1={x(Math.min(cursor, n - 1))} y1="0" x2={x(Math.min(cursor, n - 1))} y2={H} stroke="#7da3e0" strokeWidth="1.2" />
+      <line x1={x(Math.min(cursor, n - 1))} y1="0" x2={x(Math.min(cursor, n - 1))} y2={H} className="eg-cursor" strokeWidth="1.2" />
       {hi != null && (
         <g pointerEvents="none">
-          <line x1={x(hi)} y1="0" x2={x(hi)} y2={H} stroke="rgba(165, 180, 252,0.75)" strokeWidth="1" strokeDasharray="3 3" />
-          <circle cx={x(hi)} cy={y(evals[hi])} r="3.2" fill="#a5b4fc" />
+          <line x1={x(hi)} y1="0" x2={x(hi)} y2={H} className="eg-hover" strokeWidth="1" strokeDasharray="3 3" />
+          <circle className="eg-dot" cx={x(hi)} cy={y(evals[hi])} r="3.2" />
           <g transform={`translate(${tipX}, ${y(evals[hi]) > H / 2 ? 6 : H - 36})`}>
-            <rect width={tipW} height="30" rx="6" fill="rgba(19, 28, 49,0.95)" stroke="rgba(255,255,255,0.16)" />
-            <text x="9" y="13" fontSize="10" fill="#f2f3f7" fontWeight="700" style={{ fontFamily: 'var(--mono)' }}>
+            <rect className="eg-tip" width={tipW} height="30" rx="6" />
+            <text className="eg-tip-1" x="9" y="13" fontSize="10" fontWeight="700">
               {hMove ? `${Math.ceil(hi / 2)}${hi % 2 ? '.' : '…'} ${hMove.san}${hMeta && hMeta.label ? ' ' + hMeta.label : ''}` : 'Start position'}
             </text>
-            <text x="9" y="25" fontSize="9" fill="#969db0" style={{ fontFamily: 'var(--mono)' }}>
+            <text className="eg-tip-2" x="9" y="25" fontSize="9">
               {evTxt(evals[hi])}{hMeta ? ` · ${hMeta.name}` : ''}
             </text>
           </g>
@@ -382,7 +384,7 @@ export default function Analyzer() {
   let arrows = showSolution && mistake.pv && mistake.pv.length
     ? mistake.pv.map((m, i) => [m.from, m.to, i % 2 === 0 ? '#6366f1' : '#e06c6c'])
     : [];
-  // live engine best-move arrow (toggle with ★ / B) — also hidden in assess-first mode
+  // live engine best-move arrow (toggle button / B key) — also hidden in assess-first mode
   if (!arrows.length && showBest && !prove && !engineHidden && liveLines[0] && liveLines[0].sans[0]) {
     const f = liveLines[0].sans[0];
     arrows = [[f.from, f.to, 'rgba(111,201,138,0.9)']];
@@ -475,7 +477,7 @@ export default function Analyzer() {
               ))}
             </div>
             <div className="btn-row">
-              <button className="btn primary" disabled={busy || !pgn.trim()} onClick={() => run()}>{busy ? 'Analyzing…' : '⚡ Analyze game'}</button>
+              <button className="btn primary" disabled={busy || !pgn.trim()} onClick={() => run()}>{busy ? 'Analyzing…' : <><Icon name="review" size={16} /> Analyze game</>}</button>
               <button className="btn" disabled={busy} onClick={() => setPgn(SAMPLE_PGN)}>Load sample</button>
             </div>
             {busy && <div className="progressbar"><div style={{ width: `${Math.round(progress * 100)}%` }} /></div>}
@@ -487,8 +489,8 @@ export default function Analyzer() {
           <div className="panel" style={{ flex: 1, minWidth: 320, maxWidth: 600 }}>
             <h3>…or fetch your latest games</h3>
             <div className="btn-row" style={{ alignItems: 'center' }}>
-              <button className={`btn ${importSrc === 'chess.com' ? 'primary' : ''}`} onClick={() => setImportSrc('chess.com')}>♟ chess.com</button>
-              <button className={`btn ${importSrc === 'lichess' ? 'primary' : ''}`} onClick={() => setImportSrc('lichess')}>🐴 lichess</button>
+              <button className={`btn ${importSrc === 'chess.com' ? 'primary' : ''}`} onClick={() => setImportSrc('chess.com')}>chess.com</button>
+              <button className={`btn ${importSrc === 'lichess' ? 'primary' : ''}`} onClick={() => setImportSrc('lichess')}>lichess</button>
               <input className="text-input" placeholder="username" value={importUser}
                 onChange={(e) => setImportUser(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && importUser.trim()) doImport(); }} />
@@ -500,8 +502,8 @@ export default function Analyzer() {
                 {importedGames.map((g) => (
                   <button key={g.id} className="select-card" onClick={() => pickImported(g)}>
                     <div className="t" style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>⚪ {g.white} · ⚫ {g.black}</span>
-                      <span style={{ color: 'var(--gold-soft)', flexShrink: 0 }}>{g.result}</span>
+                      <span className="vs-line"><SideDot side="w" /> {g.white} <span className="muted">vs</span> <SideDot side="b" /> {g.black}</span>
+                      <span style={{ color: 'var(--accent-soft)', flexShrink: 0 }}>{g.result}</span>
                     </div>
                     <div className="d">{g.speed} · {g.date} · you were {g.userColor === 'w' ? 'White' : 'Black'}</div>
                   </button>
@@ -529,35 +531,35 @@ export default function Analyzer() {
                 </div>
               </div>
               <div className="btn-row" style={{ justifyContent: 'center' }}>
-                <button className="btn" onClick={() => setFlipped(!flipped)}>⇅ Flip</button>
-                <button className="btn" disabled={cursor === 0} onClick={() => { setCursor(0); setActiveMistake(null); }}>⏮</button>
-                <button className="btn" disabled={cursor === 0} onClick={() => { setCursor(cursor - 1); setActiveMistake(null); }}>◀</button>
-                <button className="btn" disabled={cursor >= result.moves.length} onClick={() => { setCursor(cursor + 1); setActiveMistake(null); }}>▶</button>
-                <button className="btn" disabled={cursor >= result.moves.length} onClick={() => { setCursor(result.moves.length); setActiveMistake(null); }}>⏭</button>
-                <button className={`btn ${showBest ? 'primary' : ''}`} title="Engine's best move as an arrow (B)" onClick={() => setShowBest(!showBest)}>★ Engine arrow</button>
+                <button className="btn" onClick={() => setFlipped(!flipped)}><Icon name="flip" size={16} /> Flip</button>
+                <button className="btn" disabled={cursor === 0} aria-label="First move" onClick={() => { setCursor(0); setActiveMistake(null); }}><Icon name="first" size={18} /></button>
+                <button className="btn" disabled={cursor === 0} aria-label="Previous move" onClick={() => { setCursor(cursor - 1); setActiveMistake(null); }}><Icon name="prev" size={18} /></button>
+                <button className="btn" disabled={cursor >= result.moves.length} aria-label="Next move" onClick={() => { setCursor(cursor + 1); setActiveMistake(null); }}><Icon name="next" size={18} /></button>
+                <button className="btn" disabled={cursor >= result.moves.length} aria-label="Last move" onClick={() => { setCursor(result.moves.length); setActiveMistake(null); }}><Icon name="last" size={18} /></button>
+                <button className={`btn ${showBest ? 'primary' : ''}`} title="Engine's best move as an arrow (B)" onClick={() => setShowBest(!showBest)}><Icon name="arrow" size={16} /> Engine arrow</button>
               </div>
               <div className="btn-row" style={{ justifyContent: 'center' }}>
                 {!prove && (
                   <button className="btn teal" disabled={engineHidden || !liveLines.length}
                     title={engineHidden ? 'Reveal the engine first (assess-first is on)' : 'An engine-grounded read of this exact position'}
                     onClick={() => setPosExplain(explainPosition({ fen, lines: liveLines, evalWhite: liveEvalW, depth: live.depth }))}>
-                    💬 Explain this position
+                    <Icon name="explain" size={16} /> Explain this position
                   </button>
                 )}
-                <button className="btn" onClick={exportAnnotated}>⬇ Annotated PGN</button>
+                <button className="btn" onClick={exportAnnotated}><Icon name="export" size={16} /> Annotated PGN</button>
                 <button className="btn" onClick={() => { setResult(null); setActiveMistake(null); setProve(null); }}>New analysis</button>
               </div>
               {posExplain && (
                 <div className="panel" style={{ marginTop: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0 }}>💬 This position <span className="muted" style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 500 }}>{posExplain.depth ? `· depth ${posExplain.depth}` : ''}</span></h3>
-                    <button className="btn btn-mini" onClick={() => setPosExplain(null)}>✕</button>
+                    <h3 className="h-icon" style={{ margin: 0 }}><Icon name="explain" size={14} /> This position <span className="muted" style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 500 }}>{posExplain.depth ? `· depth ${posExplain.depth}` : ''}</span></h3>
+                    <button className="btn btn-mini" aria-label="Close" onClick={() => setPosExplain(null)}><Icon name="close" size={16} /></button>
                   </div>
                   <p style={{ margin: '10px 0 0', fontWeight: 600 }}>{posExplain.lead}</p>
                   {posExplain.move && <p className="small" style={{ margin: '6px 0 0' }}>{posExplain.move}</p>}
                   {posExplain.line && <p className="small muted" style={{ margin: '4px 0 0' }}>{posExplain.line}</p>}
                   {posExplain.alt && <p className="small muted" style={{ margin: '4px 0 0' }}>{posExplain.alt}</p>}
-                  {posExplain.struct && <p className="small" style={{ margin: '6px 0 0', color: 'var(--gold-soft)' }}>{posExplain.struct}</p>}
+                  {posExplain.struct && <p className="small" style={{ margin: '6px 0 0', color: 'var(--accent-soft)' }}>{posExplain.struct}</p>}
                   <p className="small muted" style={{ margin: '8px 0 0', fontStyle: 'italic' }}>Grounded in the live engine line — no invented moves.</p>
                 </div>
               )}
@@ -568,7 +570,7 @@ export default function Analyzer() {
               <div className="az-tabs">
                 {AZ_TABS.map(([id, label]) => (
                   <button key={id} className={`az-tab ${sideTab === id ? 'active' : ''}`} onClick={() => setSideTab(id)}>
-                    {label}{id === 'mistakes' && result.mistakes.length ? ` ${result.mistakes.length}` : ''}
+                    <Icon name={id === 'report' ? 'report' : id} size={16} /> <span className="az-tab-label">{label}</span>{id === 'mistakes' && result.mistakes.length ? ` ${result.mistakes.length}` : ''}
                   </button>
                 ))}
               </div>
@@ -577,7 +579,7 @@ export default function Analyzer() {
                 <div className="gr-wrap">
                   {extras && extras.comment && (
                     <div className="gr-coach">
-                      <div className="gr-coach-face">🧑‍🏫</div>
+                      <div className="gr-coach-face"><Icon name="coach" size={22} /></div>
                       <div className="gr-coach-bubble">{extras.comment}</div>
                     </div>
                   )}
@@ -629,7 +631,7 @@ export default function Analyzer() {
                   </div>
                   {commentary && (
                     <div className="gr-commentary panel">
-                      <h3>🎙️ Coach's Commentary</h3>
+                      <h3 className="h-icon"><Icon name="commentary" size={14} /> Coach's Commentary</h3>
                       <p className="cm-lead">{commentary.opening}</p>
                       {commentary.turningPoints.length > 0 && (
                         <>
@@ -642,14 +644,14 @@ export default function Analyzer() {
                       {(commentary.motifs.length > 0 || commentary.structure.length > 0) && (
                         <>
                           <h4 className="cm-h">What decided it</h4>
-                          {commentary.motifs.map((m, i) => <p key={`m${i}`} className="cm-li">• {cap(m)}.</p>)}
-                          {commentary.structure.map((s, i) => <p key={`s${i}`} className="cm-li">• {s}</p>)}
+                          {commentary.motifs.map((m, i) => <p key={`m${i}`} className="cm-li bullet">{cap(m)}.</p>)}
+                          {commentary.structure.map((s, i) => <p key={`s${i}`} className="cm-li bullet">{s}</p>)}
                         </>
                       )}
                       <h4 className="cm-h">Takeaways</h4>
-                      {commentary.takeaways.map((t, i) => <p key={i} className="cm-li">✓ {t}</p>)}
+                      {commentary.takeaways.map((t, i) => <p key={i} className="cm-li with-icon"><Icon name="check" size={15} /> <span>{t}</span></p>)}
                       <h4 className="cm-h">Study a model game</h4>
-                      <p className="cm-li">📚 {commentary.masterGame}</p>
+                      <p className="cm-li with-icon"><Icon name="library" size={15} /> <span>{commentary.masterGame}</span></p>
                       <p className="cm-foot">Every move and evaluation here is taken from Stockfish's analysis of your game — nothing invented.</p>
                     </div>
                   )}
@@ -697,21 +699,21 @@ export default function Analyzer() {
                     const st = guessState[i] || 'guessing';
                     const active = activeMistake === i;
                     return (
-                      <div key={i} className="panel mistake-card" style={{ padding: '12px 14px', cursor: 'pointer', borderColor: active ? 'var(--gold)' : undefined }}
+                      <div key={i} className="panel mistake-card" style={{ padding: '12px 14px', cursor: 'pointer', borderColor: active ? 'var(--accent)' : undefined }}
                         onClick={() => jumpToMistake(i)}>
                         <div className="head">
                           {(() => { const mt = TAG_META[result.moves[m.index].tag] || TAG_META.mistake; return <span className={`chip ${mt.cls}`}>{mt.label ? mt.label + ' ' : ''}{mt.name}</span>; })()}
                           <b>{m.moveNumber}{result.moves[m.index].color === 'w' ? '.' : '...'} {fig(m.san)}</b>
                           <span className="sev">{m.missedMate ? 'missed mate' : m.winDrop != null ? `−${m.winDrop}% win` : `−${(m.cpl / 100).toFixed(1)}`}</span>
-                          {st === 'solved' && <span className="chip green">found ✓</span>}
+                          {st === 'solved' && <span className="chip green"><Icon name="check" size={12} strokeWidth={3} /> found</span>}
                         </div>
                         {m.motifs && m.motifs.length > 0 && (
                           <div className="motif-row">
-                            {m.motifs.map((t) => { const mm = MOTIF_META[t]; return mm ? <span key={t} className={`chip ${mm.cls} motif-chip`} title={mm.advice}>{mm.icon} {mm.label}</span> : null; })}
+                            {m.motifs.map((t) => { const mm = MOTIF_META[t]; return mm ? <span key={t} className={`chip ${mm.cls} motif-chip`} title={mm.advice}><Icon name={t} size={12} /> {mm.label}</span> : null; })}
                             <button className="btn btn-mini" title="Jump to Tactics preloaded with this pattern"
-                              onClick={(e) => { e.stopPropagation(); requestTactics({ motif: m.motifs[0] }); }}>🧩 Drill this</button>
+                              onClick={(e) => { e.stopPropagation(); requestTactics({ motif: m.motifs[0] }); }}><Icon name="drill" size={14} /> Drill this</button>
                             <button className="btn btn-mini" title="Replay puzzles harvested from your own mistakes"
-                              onClick={(e) => { e.stopPropagation(); requestTactics({ mode: 'mine' }); }}>💥 My blunders</button>
+                              onClick={(e) => { e.stopPropagation(); requestTactics({ mode: 'mine' }); }}><Icon name="blunders" size={14} /> My blunders</button>
                           </div>
                         )}
                         {active && st === 'guessing' && (
@@ -719,24 +721,24 @@ export default function Analyzer() {
                             <div className="banner gold big" style={{ margin: '8px 0' }}>
                               Here you played <b>{fig(m.san)}</b>{m.missedMate ? ' and missed a forced mate' : ''}. <b>Find the engine's move on the board!</b>
                             </div>
-                            {guessWrong && <div className="banner err">✗ Not that — checks, captures, threats.</div>}
+                            {guessWrong && <div className="banner err">Not that — checks, captures, threats.</div>}
                             <button className="btn" onClick={(e) => { e.stopPropagation(); setGuessState((s) => ({ ...s, [i]: 'revealed' })); }}>Give up — show me</button>
                           </>
                         )}
                         {active && st !== 'guessing' && (
                           <>
                             <div className={`banner ${st === 'solved' ? 'ok' : 'coach'} big`} style={{ margin: '8px 0' }}>
-                              {st === 'solved' ? '✓ Exactly: ' : 'The move was '}<b>{fig(m.bestSan || '')}</b>. {m.explanation}
+                              {st === 'solved' ? 'Exactly: ' : 'The move was '}<b>{fig(m.bestSan || '')}</b>. {m.explanation}
                             </div>
                             {m.pv && m.pv.length > 1 && <p className="small muted">Engine line (arrows): {m.pv.map((p) => fig(p.san)).join(' ')}</p>}
                             {(!prove || prove.idx !== i) && (
-                              <button className="btn primary" onClick={(e) => { e.stopPropagation(); startProve(i); }}>💪 Prove it — play it out vs Stockfish</button>
+                              <button className="btn primary" onClick={(e) => { e.stopPropagation(); startProve(i); }}><Icon name="prove" size={16} /> Prove it — play it out vs Stockfish</button>
                             )}
                             {prove && prove.idx === i && (
                               <div className="banner coach big" style={{ marginTop: 8 }} onClick={(e) => e.stopPropagation()}>
                                 {!prove.verdict && <>Play the position on the board — {8 - prove.userMoves} of your moves left. {prove.thinking && <span className="chip blue">SF thinking…</span>}</>}
-                                {prove.verdict === 'win' && <b style={{ color: 'var(--good)' }}>Checkmate — proven beyond doubt. ✓</b>}
-                                {prove.verdict === 'held' && <b style={{ color: 'var(--good)' }}>✓ Advantage held over 8 moves vs Stockfish — you own this position now.</b>}
+                                {prove.verdict === 'win' && <b style={{ color: 'var(--good)' }}>Checkmate — proven beyond doubt.</b>}
+                                {prove.verdict === 'held' && <b style={{ color: 'var(--good)' }}>Advantage held over 8 moves vs Stockfish — you own this position now.</b>}
                                 {prove.verdict === 'slipped' && <b style={{ color: 'var(--bad)' }}>The advantage slipped during the playout — replay it and watch the engine line first.</b>}
                                 {prove.verdict === 'loss' && <b style={{ color: 'var(--bad)' }}>Mated in the playout — back to the drawing board.</b>}
                                 <div className="btn-row">

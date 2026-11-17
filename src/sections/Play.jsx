@@ -3,6 +3,8 @@ import { Chess } from 'chess.js';
 import Board from '../components/Board.jsx';
 import EvalBar from '../components/EvalBar.jsx';
 import PlayerBar from '../components/play/PlayerBar.jsx';
+import Icon from '../components/Icon.jsx';
+import BotAvatar from '../components/BotAvatar.jsx';
 import SetupScreen from '../components/play/SetupScreen.jsx';
 import GameOverCard from '../components/play/GameOverCard.jsx';
 import ChecklistAid from '../components/play/ChecklistAid.jsx';
@@ -366,17 +368,17 @@ export default function Play() {
   // ---------- playing / game over ----------
   return (
     <div>
-      <h1 className="page-title">Play <span className="accent">vs {bot.name} {bot.emoji}</span></h1>
+      <h1 className="page-title">Play <span className="accent">vs {bot.name}</span></h1>
       <p className="page-sub">
         {bot.elo === 3200 ? 'Full-power Stockfish' : `~${bot.elo} Elo`} · lifetime vs {bot.name}: +{rec.w} ={rec.d} −{rec.l}
-        {game.__label ? <> · <span className="chip blue">from: {game.__label}</span></> : opening ? <> · <b style={{ color: 'var(--gold-soft)' }}>{opening}</b></> : null}
+        {game.__label ? <> · <span className="chip blue">from: {game.__label}</span></> : opening ? <> · <b style={{ color: 'var(--accent-soft)' }}>{opening}</b></> : null}
       </p>
 
       <div className="layout-2col">
         <div className="board-col">
           <PlayerBar
             position="top"
-            name={youOnBottom ? `${bot.emoji} ${bot.name}` : '🧑 Selim'}
+            name={youOnBottom ? <><BotAvatar bot={bot} size={26} /> {bot.name}</> : <><Icon name="user" size={18} /> Selim</>}
             isThinking={youOnBottom && thinking}
             active={!turnIsUser && phase === 'playing'}
             showClock={showClocks}
@@ -402,7 +404,7 @@ export default function Play() {
 
           <PlayerBar
             position="bottom"
-            name={youOnBottom ? '🧑 Selim' : `${bot.emoji} ${bot.name}`}
+            name={youOnBottom ? <><Icon name="user" size={18} /> Selim</> : <><BotAvatar bot={bot} size={26} /> {bot.name}</>}
             isThinking={!youOnBottom && thinking}
             active={turnIsUser}
             showClock={showClocks}
@@ -410,15 +412,15 @@ export default function Play() {
           />
 
           <div className="btn-row" style={{ justifyContent: 'center' }}>
-            <button className="btn" onClick={() => setFlipped(!flipped)}>⇅ Flip</button>
-            {phase === 'playing' && <button className="btn" onClick={hint} disabled={thinking || !turnIsUser}>💡 Hint</button>}
-            {phase === 'playing' && <button className="btn" onClick={takeback} disabled={thinking || !history.length}>↩ Takeback</button>}
-            {phase === 'playing' && <button className="btn" onClick={offerDraw} disabled={thinking}>½ Draw?</button>}
-            {phase === 'playing' && <button className="btn" onClick={resign}>🏳 Resign</button>}
-            {phase === 'over' && <button className="btn primary" onClick={() => startGame(gameRef.current.__startFen ? { startFen: gameRef.current.__startFen, forceColor: userColor, label: gameRef.current.__label } : {})}>⟳ Rematch</button>}
+            <button className="btn" onClick={() => setFlipped(!flipped)}><Icon name="flip" size={16} /> Flip</button>
+            {phase === 'playing' && <button className="btn" onClick={hint} disabled={thinking || !turnIsUser}><Icon name="hint" size={16} /> Hint</button>}
+            {phase === 'playing' && <button className="btn" onClick={takeback} disabled={thinking || !history.length}><Icon name="takeback" size={16} /> Takeback</button>}
+            {phase === 'playing' && <button className="btn" onClick={offerDraw} disabled={thinking}><Icon name="draw" size={16} /> Offer draw</button>}
+            {phase === 'playing' && <button className="btn" onClick={resign}><Icon name="resign" size={16} /> Resign</button>}
+            {phase === 'over' && <button className="btn primary" onClick={() => startGame(gameRef.current.__startFen ? { startFen: gameRef.current.__startFen, forceColor: userColor, label: gameRef.current.__label } : {})}><Icon name="repeat" size={16} /> Rematch</button>}
             {phase === 'over' && <button className="btn" onClick={() => setPhase('setup')}>New opponent</button>}
           </div>
-          {thinking && !engineReady && <p className="small muted" style={{ textAlign: 'center', marginTop: 4 }}>⏳ loading Stockfish (first move only)…</p>}
+          {thinking && !engineReady && <p className="small muted" style={{ textAlign: 'center', marginTop: 4 }}>Loading Stockfish (first move only)…</p>}
           {premove && <p className="small muted" style={{ textAlign: 'center', marginTop: 4 }}>premove set: {premove.from}→{premove.to} (right-click to cancel)</p>}
           {!live && <p className="small muted" style={{ textAlign: 'center', marginTop: 4 }}>viewing move {Math.ceil(viewPly / 2)} — ↓ or click last move to go live</p>}
         </div>
@@ -453,7 +455,7 @@ export default function Play() {
           {phase === 'playing' && <ChecklistAid />}
 
           <div className="panel">
-            <h3>{bot.emoji} {bot.name}</h3>
+            <h3 className="h-icon"><BotAvatar bot={bot} size={22} /> {bot.name}</h3>
             <p className="small muted" style={{ margin: '4px 0' }}>{bot.tagline}</p>
             <p className="small muted" style={{ margin: '4px 0' }}>
               Beat a bot cleanly (no hints) before moving up the ladder. ← → to replay moves · F to flip.

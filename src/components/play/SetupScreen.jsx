@@ -1,6 +1,9 @@
 import React from 'react';
 import { BOTS } from '../../data/bots.js';
 import { TIME_CONTROLS } from '../../hooks/useGameClock.js';
+import Icon from '../Icon.jsx';
+import BotAvatar from '../BotAvatar.jsx';
+import SideDot from '../SideDot.jsx';
 
 // Bot-choice + game-setup screen shown before a game starts (Play.jsx "setup" phase).
 export default function SetupScreen({
@@ -16,10 +19,10 @@ export default function SetupScreen({
 
       {savedGame && (
         <div className="banner gold big" style={{ marginBottom: 14, maxWidth: 720 }}>
-          ♟ Unfinished game vs <b>{(BOTS.find((b) => b.id === savedGame.botId) || {}).name || 'bot'}</b>
+          Unfinished game vs <b>{(BOTS.find((b) => b.id === savedGame.botId) || {}).name || 'bot'}</b>
           {savedGame.label ? ` (${savedGame.label})` : ''} — saved {new Date(savedGame.ts).toLocaleString()}.
           <div className="btn-row">
-            <button className="btn primary" onClick={resumeSaved}>▶ Resume game</button>
+            <button className="btn primary" onClick={resumeSaved}><Icon name="forward" size={16} /> Resume game</button>
             <button className="btn" onClick={clearSavedGame}>Discard</button>
           </div>
         </div>
@@ -31,7 +34,7 @@ export default function SetupScreen({
           const played = r.w + r.d + r.l;
           return (
             <button key={b.id} style={{ '--i': i }} className={`bot-card ${botId === b.id ? 'active' : ''}`} onClick={() => setBotId(b.id)}>
-              <div className="bot-emoji">{b.emoji}</div>
+              <BotAvatar bot={b} size={48} />
               <div className="bot-name">{b.name}</div>
               <div className="bot-elo">{b.elo === 3200 ? 'MAX' : b.elo}</div>
               <div className="bot-tag">{b.tagline}</div>
@@ -47,7 +50,8 @@ export default function SetupScreen({
           <span className="small muted">You play:</span>
           {['white', 'black', 'random'].map((c) => (
             <button key={c} className={`btn ${colorChoice === c ? 'primary' : ''}`} onClick={() => setColorChoice(c)}>
-              {c === 'white' ? '⚪ White' : c === 'black' ? '⚫ Black' : '🎲 Random'}
+              {c === 'random' ? <Icon name="random" size={16} /> : <SideDot side={c === 'white' ? 'w' : 'b'} />}
+              {c === 'white' ? 'White' : c === 'black' ? 'Black' : 'Random'}
             </button>
           ))}
         </div>
@@ -65,7 +69,7 @@ export default function SetupScreen({
         </div>
         <div className="btn-row">
           <button className="btn primary" style={{ fontSize: 16, padding: '10px 26px' }} onClick={onStart}>
-            ▶ Play {(BOTS.find((b) => b.id === botId) || {}).name}
+            Play {(BOTS.find((b) => b.id === botId) || {}).name} <Icon name="next" size={18} />
           </button>
         </div>
       </div>
